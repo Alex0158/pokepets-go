@@ -7,6 +7,7 @@ import { confirmedCommand, matchingPlayers, readIntent } from '../../src/client/
 import type { IntentResult } from '../../src/client/game-intent-client.ts';
 import type { WorldPlayer, WorldSnapshot } from '../../src/client/world.ts';
 import { validateAudioInput } from '../../src/client/audio-validation.ts';
+import { RealtimeConversation } from './RealtimeConversation';
 
 type View=NonNullable<IntentResult['view']>;
 type Props={profile:Profile;progress:ProgressSnapshot|null;blocked:boolean;mutate:(path:string,payload:Record<string,unknown>)=>Promise<boolean>;onView:(view:View)=>void;onPlayer:(id:string)=>void;onActivity:(text:string)=>void};
@@ -16,6 +17,7 @@ export function GameVoicePanel({profile,progress,blocked,mutate,onView,onPlayer,
   const [open,setOpen]=useState(false),[text,setText]=useState(''),[consent,setConsent]=useState(false),[audio,setAudio]=useState<Blob|null>(null),[audioUrl,setAudioUrl]=useState('');
   const [recording,setRecording]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[unavailable,setUnavailable]=useState(false),[message,setMessage]=useState('');
   const [result,setResult]=useState<IntentResult|null>(null),[players,setPlayers]=useState<WorldPlayer[]>([]),[target,setTarget]=useState(''),[stat,setStat]=useState(''),[mode,setMode]=useState(''),[view,setView]=useState<View>('map');
+  const [realtimeActive,setRealtimeActive]=useState(false);
   const recorder=useRef<MediaRecorder|null>(null),stream=useRef<MediaStream|null>(null),timer=useRef<ReturnType<typeof setTimeout>|null>(null),inFlight=useRef(false),recordRequest=useRef(0);
   useEffect(()=>()=>{recordRequest.current++;if(recorder.current?.state==='recording')recorder.current.stop();stream.current?.getTracks().forEach(t=>t.stop());if(timer.current)clearTimeout(timer.current);},[]);
   useEffect(()=>{if(!audio){setAudioUrl('');return;}const url=URL.createObjectURL(audio);setAudioUrl(url);return()=>URL.revokeObjectURL(url);},[audio]);
@@ -73,12 +75,14 @@ export function GameVoicePanel({profile,progress,blocked,mutate,onView,onPlayer,
   return <details className="game-voice-panel" open={open} onToggle={e=>{setOpen(e.currentTarget.open);if(!e.currentTarget.open){recordRequest.current++;if(recorder.current?.state==='recording')recorder.current.stop();}}}>
     <summary>Talk to your game · Voice or text</summary>
     <div className="game-voice-content"><h2>What would you like to do?</h2><p>Ask about points, open a screen, upgrade a stat, select a player, start a challenge, or report a pet activity. Interpretation never spends or awards points.</p>
-    <p className="muted">Audio or text is sent to OpenAI only when you choose Interpret. Audio and transcripts stay in this tab and are lost on reload. No automatic speaking or background microphone.</p>
-    <label className="confirmation"><input type="checkbox" checked={consent} disabled={busy||recording} onChange={e=>setConsent(e.target.checked)}/> I agree to send this command to OpenAI for transcription and intent interpretation.</label>
+    <p className="muted">This game keeps command recordings and transcripts in this tab only. One-off commands send on Interpret; live microphone audio sends only after Start.</p>
+    <RealtimeConversation active={open} disabled={busy||recording} onActive={setRealtimeActive} onReview={value=>{setText(value);setResult(null);setMessage('Conversation stopped. Review this text and choose Interpret text command before any game action.');}}/>
+    <h3>Or send one command</h3>
+    <label className="confirmation"><input type="checkbox" checked={consent} disabled={busy||recording||realtimeActive} onChange={e=>setConsent(e.target.checked)}/> I agree to send this command to OpenAI for transcription and intent interpretation.</label>
     {!unavailable&&<><label>Game command<textarea value={text} maxLength={4000} rows={2} disabled={busy||recording} placeholder="How do points work? / Upgrade attack / Challenge Jamie" onChange={e=>{setText(e.target.value);setResult(null);}}/></label>
-    <div className="voice-controls"><button disabled={!consent||busy||recording||!text.trim()} onClick={()=>void interpret(false)}>Interpret text command</button><button disabled={!recording&&(!consent||busy)} onClick={()=>void record()}>{recording?'Stop command recording':'Record game command'}</button><label className="audio-upload">Choose command audio<input type="file" accept="audio/webm,audio/mp4,audio/wav" disabled={busy||recording} onChange={e=>{const file=e.target.files?.[0];if(file)void choose(file);}}/></label></div>
+    <div className="voice-controls"><button disabled={!consent||busy||recording||realtimeActive||!text.trim()} onClick={()=>void interpret(false)}>Interpret text command</button><button disabled={!recording&&(!consent||busy||realtimeActive)} onClick={()=>void record()}>{recording?'Stop command recording':'Record game command'}</button><label className="audio-upload">Choose command audio<input type="file" accept="audio/webm,audio/mp4,audio/wav" disabled={busy||recording||realtimeActive} onChange={e=>{const file=e.target.files?.[0];if(file)void choose(file);}}/></label></div>
     <p className="muted">Recording up to 30 seconds · WebM, MP4 or WAV · Maximum 1 MiB</p>
-    {audioUrl&&<audio controls src={audioUrl} aria-label="Listen to your game command"/>}{audio&&<button disabled={!consent||busy||recording} onClick={()=>void interpret(true)}>Interpret audio command</button>}</>}
+    {audioUrl&&<audio controls src={audioUrl} aria-label="Listen to your game command"/>}{audio&&<button disabled={!consent||busy||recording||realtimeActive} onClick={()=>void interpret(true)}>Interpret audio command</button>}</>}
     {busy&&<p role="status">Working… No action is assumed saved.</p>}{error&&<p role="alert" className="error">{error}</p>}{message&&<p role="status">{message}</p>}
     {result&&<article className="intent-preview"><p className="eyebrow">INTERPRETED REQUEST · REVIEW FIRST</p><blockquote>{result.transcript}</blockquote>
       {result.intent==='points_help'?<p>You have <strong>{progress?.points??'—'} saved points</strong>. Each stat upgrade costs 5 points. Owner-reported activity can earn 0–20 AI-assessed points; battles award no points. Upgrades affect the next activated battle; active battles keep their starting stats.</p>:result.intent==='unknown'?<p>I could not identify a clear game request. Try a specific question or use the normal controls.</p>:<>

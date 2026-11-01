@@ -4,7 +4,7 @@ Alex / Codex — Local UI integration verified, 1 November 2026. Source is stabl
 
 ## Current experience
 
-- Cookie-backed player onboarding, separate owner/pet characters, and the reused Afterglow illustrated map. All registered players appear automatically at fictional coordinates; no GPS or online-status claim.
+- Cookie-backed player onboarding, separate owner/pet characters, and the teammate's procedural Haggerston 2.5D map with retained SVG fallback. All registered players appear automatically at fictional coordinates; no GPS or online-status claim. Own walking is local presentation only.
 - Selecting a player offers Sneak attack against an isolated deterministic copy, or Face-to-face invitation with explicit acceptance and independent owner control. Normal navigation requires no manual IDs.
 - Auto is on by default only while Battle is open and on the authenticated player’s legal turn. Manual off exposes small attack, big attack, heal, defend and flee. The UI shows Decisions versus deterministic fallback and uses authoritative HP, caps and escape results.
 - Voice or typed activity is the primary report flow: explicit provider disclosure, OpenAI transcription/evaluation, server-saved rewards bounded to 0–20 points, and visible transcript/reason. Activities are self-reported. Daily feed/play and legacy missions remain an explicit manual fallback. Upgrades cost 5 points.
@@ -48,3 +48,13 @@ This evidence proves local browser plus live-provider integration. It does not p
 ## Artwork provenance
 
 Afterglow artwork/wording reused from teammate remote `main/mock/` without changing refs: `app.js` blob `1dc7684214a0de02f298bc37b9b9fc77879cf912`, `index.html` blob `26efe4daabf55eda61b9cf9c6aad8c642c31597a`. Extracted the background and distinct owner/pet presets. Simulated rewards, balances, fixture community and the incompatible four-move controller were not imported. No third-party arena bundle was copied.
+
+## Interactive map release follow-up
+
+The isolated renderer/wrapper workstream adapted teammate `mock/map.js` at commit `7ba16a3e528e58301294044679f0c041b2f69d68`; see `teammate-map-integration.md`. This UI workstream connected it through `GameShell` and a tested optional world-projection adapter. Existing real-player selection, invitations, voice, Daily care and private `CharacterArt` remain connected. A registered-player chooser keeps crowded/offscreen markers accessible. The mock's fixture players, local economy and simulated battle controller were not imported.
+
+Actual Chrome local proof: Walk right moved the owner/pet duo from pixel `(283.9,220.5)` to `(313.6,236.3)`; a background click subsequently reached `(414,346.8)`. Camera rotation moved B's projected marker from `(489.2,281.2)` to `(481.4,283.9)`. Selecting B opened the existing two-mode dialog without changing own position. Walking neither awards points nor sends a world-position mutation; balance stayed 56. Position is not shared or retained through remount/reload.
+
+The final browser viewport was genuinely **375×844** (DOM measured). An observed toolbar/status overlap was corrected by placing the toolbar below the scene. Final canvas bottom and toolbar top both measured 632.5 px; the status ended at 626.5 px. Pause/Resume, zoom, SVG → real-roster chooser → B's dialog, and SVG → 3D restoration passed. The viewport was reset to 1200×829. This supersedes the earlier ineffective viewport attempt, but does not establish real-device acceptance.
+
+Final current required DB-enabled suite: **134 total, 133 passed, zero failed, one paid Decisions test skipped**; production webpack build including TypeScript and root syntax/diff checks passed after the mobile correction. Renderer/projection focused tests are 8/8. New map screenshots use labelled presets; this lane made no new paid avatar calls. Earlier live-avatar proof remains separately scoped. Proofs: `interactive-map-mobile-proof.jpg`, `interactive-map-desktop-proof.jpg`, `interactive-map-first-movement-proof.jpg`. Code is frozen for the release owner; this lane did not push or deploy.

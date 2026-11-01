@@ -1,0 +1,92 @@
+/* Presentation adapted from the teammate's Afterglow mock; game state stays in existing modules. */
+.game-shell{--ink:#f2f2f5;--muted:#9095aa;--lime:#d5fb78;--lavender:#bbb0f6;background:#11131c;padding-left:88px}
+.game-icon{display:block;width:20px;height:20px;flex:none}
+.game-shell .game-header{height:88px;max-width:1400px;padding:0 38px;gap:20px;border-color:#2b2f3e}
+.game-shell .game-brand{font-size:26px;letter-spacing:-1.5px;white-space:nowrap}
+.game-shell .game-brand small{font-size:7px;letter-spacing:2.5px;margin-left:22px}
+.header-session{margin:0 0 0 auto;display:flex;align-items:center;gap:8px;color:#9095aa;font-size:10px;min-width:0}
+.header-session>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px}
+.header-session strong{font-weight:500;color:#c3c5d1}
+.game-shell .header-session button{border:0;background:transparent;padding:8px;color:#9095aa}
+.header-session .game-icon{width:14px;height:14px}
+.game-shell .game-balance{padding:10px 12px;border-color:#3f4937;background:#20271e;border-radius:8px;font-size:9px;white-space:nowrap}
+.game-shell .game-balance span,.game-shell .game-balance strong{font-size:15px}
+.game-shell .game-nav{position:fixed;inset:0 auto 0 0;width:88px;max-width:none;margin:0;padding:26px 8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;border-right:1px solid #2b2f3e;background:#12141e;overflow-y:auto;z-index:10}
+.game-shell .rail-brand{display:grid;place-items:center;width:43px;height:43px;min-height:43px;margin-bottom:24px;background:#d5fb78;color:#28342d;border-radius:14px 14px 14px 3px;transform:rotate(-5deg)}
+.rail-brand .game-icon{width:26px;height:26px;transform:rotate(5deg)}
+.game-shell .game-nav button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:56px;width:64px;padding:8px 3px;border:0;border-radius:8px;background:transparent;color:#9095aa;font-size:9px;line-height:1.3}
+.game-shell .game-nav button .game-icon{width:22px;height:22px}
+.game-shell .game-nav button:hover{background:#1b1f2b;color:#f2f2f5}
+.game-shell .game-nav button[aria-current=page]{background:transparent;color:#d5fb78}
+.game-shell .game-nav button[aria-current=page]::before{content:'';position:absolute;left:-12px;top:13px;width:3px;height:27px;border-radius:3px;background:#d5fb78}
+.game-shell .game-main{max-width:1400px;margin:0 auto;padding:28px 38px 32px}
+.game-shell .game-intro{margin-bottom:20px;align-items:flex-end}
+.game-shell h1{font-size:36px;letter-spacing:-1.4px;line-height:1.1;margin:10px 0 0;font-weight:750}
+.game-shell .eyebrow{font-size:8px;letter-spacing:1.8px}
+.game-shell .world-label{font-size:11px;margin:0 0 2px;color:#dddde5}
+.game-shell .world-label small{font-size:9px;margin-top:6px;color:#9095aa}
+.game-shell .game-status p{margin:0 0 16px}
+.game-shell .game-voice-panel{margin:0 0 20px;border-color:#303545;background:#171c28;border-radius:12px}
+.game-shell .game-voice-panel:not([open]){width:max-content;max-width:100%;border-radius:22px;background:transparent}
+.game-shell .game-voice-panel>summary{padding:10px 16px;font-size:11px;font-weight:500}
+.game-shell .game-voice-panel[open]{width:100%}
+.game-shell .world-layout{grid-template-columns:minmax(0,1fr) 280px;gap:22px;align-items:start}
+.game-shell .world-card{border-color:#303443;border-radius:15px;background:#191c28}
+.game-shell .selected-adventure{background:#171d2a;padding:20px 22px}
+.game-shell .selected-adventure h2{font-size:22px;margin:9px 0}
+.game-shell .selected-adventure p{font-size:11px;margin:7px 0;color:#979fb4}
+.game-shell .selected-adventure .primary{font-size:11px;min-height:44px;padding:11px 16px;border-radius:7px}
+.adventure-sidebar{display:flex;flex-direction:column;gap:14px;min-width:0}
+.game-shell .duo-card{padding:18px 20px;background:#1a1c28;border:1px solid #303342;border-radius:15px}
+.duo-title{display:flex;align-items:center;justify-content:space-between;width:100%}
+.duo-title .eyebrow{margin:0;font-size:7px;letter-spacing:1.3px}
+.game-shell .duo-card .duo-edit{width:28px;height:28px;margin:0;padding:5px;background:transparent;border:0;color:#9095aa}
+.duo-edit .game-icon{width:18px;height:18px;transform:rotate(-45deg)}
+.game-shell .duo-art{position:relative;height:190px;background:radial-gradient(ellipse,#39324f44,transparent 67%);align-items:center}
+.duo-art::before,.duo-art::after{content:'';position:absolute;width:174px;height:174px;border:1px solid #4a465a;border-radius:50%;pointer-events:none}
+.duo-art::after{width:150px;height:150px;border-color:#393748}
+.game-shell .duo-art>img,.game-shell .duo-art>.sprite-art{position:relative;z-index:1;width:170px;height:170px;margin:0;object-fit:contain}
+.duo-badge{align-self:center;border:1px solid #48513c;background:#272d22;border-radius:15px;padding:4px 9px;color:#cddcb0;font-size:6px;letter-spacing:1px;margin-top:-7px;z-index:1}
+.game-shell .duo-card h2{font-size:26px;letter-spacing:-.7px;margin:19px 0 5px;font-weight:650}
+.game-shell .duo-provenance{font-size:10px;color:#a6a5b9;margin:0 0 5px}
+.duo-stats{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:13px 0 0;padding:13px 0;border-top:1px solid #373747;border-bottom:1px solid #373747}
+.duo-stats dt{text-transform:capitalize;font-size:8px;color:#9095aa}
+.duo-stats dd{font-size:16px;color:#bbb0f6;margin:6px 0 0}
+.game-shell .duo-card .duo-upgrades{display:flex;align-items:center;justify-content:space-between;padding:13px 0;margin:0;border:0;border-bottom:1px solid #373747;background:transparent;border-radius:0;font-size:10px;color:#d1cde4}
+.duo-upgrades .game-icon{width:15px;height:15px}
+.duo-owner{width:100%;display:flex;gap:11px;align-items:center;margin-top:16px}
+.duo-owner>img,.duo-owner>.sprite-art{width:33px;height:42px;object-fit:contain;flex:none}
+.duo-owner strong{display:block;font-size:11px;font-weight:500;overflow-wrap:anywhere}
+.duo-owner small{display:block;font-size:8px;line-height:1.6;color:#9095aa;margin-top:4px}
+.game-shell .duo-card .asset-retention{font-size:8px;line-height:1.6;color:#777f94;margin:12px 0 0}
+.game-shell .sidebar-action{display:grid;grid-template-columns:29px 1fr 18px;align-items:center;gap:12px;width:100%;padding:18px 15px;border-radius:13px;text-align:left;border:1px solid #493f57;background:#2b2438;color:#d8cbe9}
+.sidebar-action>span{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sidebar-action small{font-size:6px;letter-spacing:1.1px;font-weight:400;color:#afa1c2}
+.sidebar-action strong{font-size:16px;letter-spacing:-.4px;color:#f2edf8;font-weight:550}
+.sidebar-action em{font-size:9px;font-style:normal;color:#b2a7bf}
+.sidebar-action>.game-icon:last-child{width:16px;height:16px}
+.game-shell .sidebar-action:hover{background:#393047}
+.game-shell .daily-action{background:transparent;border-color:#2b2f3e;color:#c8dba1}
+.game-shell .daily-action:hover{background:#1b2029}
+.daily-action strong{font-size:16px}
+.game-shell .feature-panel{max-width:940px;padding:30px;border-color:#303545;background:#191c28;border-radius:16px;margin:0 auto 30px}
+.game-shell .feature-panel h2{letter-spacing:-.8px}
+.game-shell .feature-panel>p{max-width:72ch}
+.game-shell .daily-card{background:#202433;border-color:#373e51;border-radius:14px}
+.game-shell .daily-card h3{letter-spacing:-.4px}
+.game-shell .stats-grid>div{background:#202331;border-color:#35394b;border-radius:12px}
+.game-shell .stats-grid strong{font-size:34px}
+.game-shell .battle-setup{border-color:#353b4b;background:#171b27}
+.game-shell .match-card{border-color:#3a3b50;background:#141925;padding:22px}
+.game-shell .combatants{margin-top:18px;padding:24px 14px;background:radial-gradient(ellipse at 50% 100%,#30364f,#171d2b 75%);border:1px solid #353a50;border-radius:13px}
+.game-shell .move-buttons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.game-shell .move-buttons button{min-width:0;min-height:46px;font-size:11px;padding:10px 8px;border-radius:8px}
+.game-shell .turn-events{background:#202536;border:1px solid #30384c}
+.game-shell .mission-dialog{background:#191e2c;border-color:#494c62;border-radius:17px}
+.game-shell .voice-disclosure,.game-shell .text-fallback{background:#171d29;border-color:#353d50}
+.game-shell .game-main footer{padding:26px 0 4px;font-size:8px;color:#727b91}
+.realtime-conversation{border:1px solid #3c4355;border-radius:12px;padding:20px;margin:20px 0;background:#161c28}.realtime-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.realtime-heading h3{margin:0}.mic-state{font-size:10px;color:#9095aa;white-space:nowrap}.mic-state.live{color:#d5fb78}.realtime-conversation>p{font-size:12px;max-width:72ch}.realtime-controls{display:flex;gap:10px;margin:18px 0}.realtime-conversation audio{max-width:100%;height:36px}.realtime-unavailable{color:#bbb0f6}.realtime-transcript{padding:0;list-style:none;margin-top:20px}.realtime-transcript li{border-top:1px solid #343b4b;padding:14px 0}.realtime-transcript strong{font-size:11px;color:#bbb0f6}.realtime-transcript p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}.realtime-transcript button{font-size:11px}
+.game-shell .realtime-conversation audio[hidden]{display:none}
+@media(max-width:1000px){.game-shell .world-layout{grid-template-columns:minmax(0,1fr) 245px}.game-shell .game-header,.game-shell .game-main{padding-left:25px;padding-right:25px}.game-shell .duo-card{padding:16px}.game-shell .selected-adventure{flex-wrap:wrap}.game-shell .selected-adventure .primary{width:100%}.header-session>span{max-width:160px}}
+@media(max-width:850px){.game-shell{padding-left:0}.game-shell .game-header{height:76px;padding:0 20px;gap:12px}.game-shell .game-nav{position:static;inset:auto;width:100%;height:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:9px 14px;gap:5px;border-right:0;border-bottom:1px solid #2b2f3e;overflow:visible}.game-shell .game-nav .rail-brand{display:none}.game-shell .game-nav button{width:100%;min-height:50px;padding:7px 4px;gap:5px;font-size:10px}.game-shell .game-nav button .game-icon{width:18px;height:18px}.game-shell .game-nav button[aria-current=page]{background:#20271f}.game-shell .game-nav button[aria-current=page]::before{display:none}.game-shell .game-main{padding:23px 20px}.game-shell .game-intro{margin-bottom:18px}.game-shell h1{font-size:34px}.game-shell .world-layout{grid-template-columns:1fr}.adventure-sidebar{display:none}.game-shell .game-voice-panel{margin-bottom:16px}.game-shell .move-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:520px){.game-shell .game-header{height:68px;padding:0 14px;gap:8px}.game-shell .game-brand{font-size:23px}.game-shell .game-brand small{display:none}.header-session{gap:0;font-size:8px}.header-session>span{max-width:80px}.game-shell .header-session button{padding:6px}.header-session .game-icon{width:12px;height:12px}.game-shell .game-balance{font-size:8px;padding:9px 7px}.game-shell .game-balance span,.game-shell .game-balance strong{font-size:13px}.game-shell .game-main{padding:22px 14px 26px}.game-shell h1{font-size:31px;letter-spacing:-1px}.game-shell h1 span{display:block}.game-shell .game-voice-panel:not([open]){width:100%}.game-shell .game-voice-panel>summary{padding:12px 14px}.game-shell .feature-panel{padding:21px 17px}.game-shell .feature-panel h2{font-size:26px}.game-shell .selected-adventure{padding:19px 18px}.game-shell .selected-adventure h2{font-size:22px}.game-shell .move-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.game-shell .match-card{padding:14px}.game-shell .combatants{padding:18px 7px;gap:12px}.game-shell .game-nav button{font-size:9px}.game-shell .game-header .game-balance{margin-left:auto}}

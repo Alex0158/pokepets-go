@@ -15,7 +15,7 @@ The persistent **Talk to your game** panel accepts typed text or local audio aft
 
 ## Navigation corrections
 
-**Challenge another player** now opens Explore with instructions to click an owner/pet marker. Battle also provides **Find a player on the map**. **Daily care** is in primary navigation and the home duo card, alongside the voice-first activity entry. It remains usable without OpenAI. Map positions are fictional and fixed; movement controls, GPS and movement tracking are not implemented in this slice.
+**Challenge another player** now opens Explore with instructions to click an owner/pet marker. Battle also provides **Find a player on the map**. **Daily care** is in primary navigation and the home duo card, alongside the voice-first activity entry. It remains usable without OpenAI. A later integrated 2.5D map adds local-only own-avatar walking; other-player positions remain fictional, with no GPS or shared movement. See the release follow-up in `map-gameplay-integration.md` for current map browser evidence.
 
 ## Actual local evidence
 
