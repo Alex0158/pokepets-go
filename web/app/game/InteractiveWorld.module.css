@@ -1,0 +1,15 @@
+.world{width:100%;background:#202838}
+.scene{position:relative;width:100%;aspect-ratio:960/650;overflow:hidden;touch-action:pan-y}
+.fallback,.canvasHost{position:absolute;inset:0;width:100%;height:100%}
+.fallback{object-fit:cover}
+.canvasHost canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:pan-y}
+.canvasHost canvas:focus-visible{outline:3px solid #d5fb78;outline-offset:-5px}
+.overlay{position:absolute;inset:0;pointer-events:none}
+.overlay>*{pointer-events:auto}
+.duo{position:absolute;transform:translate(-50%,-88%);display:flex;align-items:end;pointer-events:none;filter:drop-shadow(2px 4px 3px #12212e88);z-index:2}
+.owner{width:42px;height:74px;position:relative}
+.pet{width:50px;height:50px;position:relative;margin-left:-3px}
+.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;padding:8px;background:#171c28}
+.world .controls button{font-size:11px;padding:6px 8px}
+.hint{position:absolute;left:8px;top:8px;z-index:3;background:#141b2bdd;padding:6px 8px;border-radius:7px;font-size:10px;color:#dce4dd;pointer-events:none}
+@media(max-width:520px){.owner{width:28px;height:50px}.pet{width:35px;height:35px}.world .controls button{font-size:10px;padding:6px}.hint{font-size:8px}}

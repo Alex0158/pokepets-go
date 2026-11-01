@@ -1,0 +1,9 @@
+export type MapPosition={x:number;z:number};
+export type MapPoint={left:number;top:number;visible:boolean};
+export type ScreenPoint={left:number;top:number};
+export type MapView={width:number;height:number;angle:number;zoom:number};
+export type NeighborhoodMap={project:(position:MapPosition)=>MapPoint|null;unproject:(point:ScreenPoint)=>MapPosition|null;setZoom:(value:number)=>void;setPaused:(value:boolean)=>void;recenter:()=>void;dispose:()=>void};
+export function projectNormalized(position:MapPosition,view:MapView):MapPoint|null;
+export function unprojectNormalized(point:ScreenPoint,view:MapView):MapPosition|null;
+export function advanceMovement(from:MapPosition,to:MapPosition,seconds:number):MapPosition;
+export function mount(host:HTMLElement,options?:{onProjectionChange?:()=>void;onMapClick?:(position:MapPosition)=>void}):NeighborhoodMap|null;

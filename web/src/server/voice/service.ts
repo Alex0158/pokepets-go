@@ -8,6 +8,7 @@ import { MAX_RECEIPTS } from '../progression/rules.ts';
 import type { Progression, ProgressionReceipt } from '../progression/rules.ts';
 import { validateAudio, validateText } from './rules.ts';
 import { assessAudio, assessText } from './provider.ts';
+import { reserveVoiceProviderCall } from './hosted-quota.ts';
 import type { Assessment } from './provider.ts';
 type VoiceReceipt=ProgressionReceipt & {voicePoints:number;voiceReason:string};
 type Flights=Map<string,{fingerprint:string;promise:Promise<unknown>}>;
@@ -20,7 +21,7 @@ export class VoiceService {
   readonly assess:(bytes:Buffer,mime:string)=>Promise<Assessment>;
   readonly assessText:(text:string)=>Promise<Assessment>;
   readonly flights:Flights;
-  constructor(db:Db,backbone:BackboneService,assess:(bytes:Buffer,mime:string)=>Promise<Assessment>=(bytes,mime)=>assessAudio(bytes,mime,process.env.OPENAI_API_KEY??''),textAssessor:(text:string)=>Promise<Assessment>=(text)=>assessText(text,process.env.OPENAI_API_KEY??''),flights:Flights=active) {this.db=db;this.backbone=backbone;this.assess=assess;this.assessText=textAssessor;this.flights=flights;}
+  constructor(db:Db,backbone:BackboneService,assess:(bytes:Buffer,mime:string)=>Promise<Assessment>=(bytes,mime)=>assessAudio(bytes,mime,process.env.OPENAI_API_KEY??'',()=>reserveVoiceProviderCall(db)),textAssessor:(text:string)=>Promise<Assessment>=(text)=>assessText(text,process.env.OPENAI_API_KEY??'',()=>reserveVoiceProviderCall(db)),flights:Flights=active) {this.db=db;this.backbone=backbone;this.assess=assess;this.assessText=textAssessor;this.flights=flights;}
   private claimKey(petId:string,commandId:string) {return createHash('sha256').update(petId).update('\0').update(commandId).digest('hex');}
   async lookup(token:string|undefined,commandId:string) {
     if(!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(commandId??''))fail('invalid_command_id',400);
