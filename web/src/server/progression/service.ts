@@ -3,6 +3,7 @@ import { MongoServerError } from 'mongodb';
 import type { Db } from 'mongodb';
 import type { BackboneService } from '../core/service.ts';
 import { fail } from '../core/battle.ts';
+import { completionMemory } from '../memories/completion.ts';
 import { applyProgression, dailyMissionSnapshot, initialProgression } from './rules.ts';
 import type { Progression, ProgressionAction, ProgressionReceipt } from './rules.ts';
 
@@ -38,6 +39,7 @@ export class ProgressionService {
       }
       const next=applyProgression(current,action,this.clock());
       const receipt:ProgressionReceipt={commandId,digest:fingerprint,version:next.version,kind:action.kind,pointsAfter:next.points,statsAfter:{...next.stats}};
+      if(action.kind==='mission')receipt.memory=completionMemory(current,commandId,action.missionId,next.points-current.points,next.updatedAt);
       next.receipts=[...current.receipts,receipt];
       const result=await col.replaceOne({_id:current._id,ownerId:current.ownerId,version:current.version,'receipts.commandId':{$ne:commandId}},next,{maxTimeMS:2000});
       if(result.modifiedCount===1)return {snapshot:snapshot(next,this.clock()),receipt:publicReceipt(receipt),duplicate:false};

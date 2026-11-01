@@ -1,72 +1,47 @@
 # Memories and community handoff
 
-Owner: **Sean / Codex**. Branch: `codex/sean-memories-community`, based on `origin/codex/nextjs-skeleton` at `c1e569b`. Ownership follows [Feature Modules and Checkpoints](https://chatgpt.com/space/page_6ae740255a908191b675c589a93bc207).
+Owner: **Sean / Codex**. Integration branch: `codex/sean-memories-integration`, based on `codex/map-core` at `0247443`, with standalone Memories commit `edd41af` cherry-picked as `c115e52`. The original `codex/nextjs-skeleton` remains at `c1e569b`; it does not contain the current host UI/runtime. Ownership follows [Feature Modules and Checkpoints](https://chatgpt.com/space/page_6ae740255a908191b675c589a93bc207).
 
 ## Scope
 
 - `/memories`: responsive Afterglow-style journal and community feed, private by default, explicit sharing confirmation, make-private control and paw reactions.
 - Authenticated owners can write a journal entry. This records a self-reported story and never awards points.
-- Server-confirmed mission occurrences can produce a private keepsake through `MemoriesService.recordMissionCompletion`. Repeated delivery returns the same entry.
-- Community contains only explicitly shared entries. `/memories?player=PLAYER_ID` filters a player's shared memories, ready for a link from Alex's player card. This is not GPS-based nearby discovery.
+- New committed curated missions, daily care and voice/text activity reports produce private keepsakes when the owner opens or refreshes Memories. Repeated delivery returns the same entry.
+- Community contains only explicitly shared entries. `/memories?player=PLAYER_ID` filters a player's shared memories, linked from the map player card's **View shared memories** action. This is not GPS-based nearby discovery.
 - Preset decorative artwork uses CSS/SVG. No live AI imagery, upload storage or extra API credentials are needed.
 
-All changes are additive. Alex's map, sessions, missions, progression, battle logic, avatar generation and Atlas configuration remain untouched. The earlier deferred battle draft is in a different worktree and is not part of this branch.
+The host integration makes narrow changes to the shell/player-card navigation and adds completion metadata to existing progression and voice receipts. Reward rules, session identity, battle logic, avatar generation and hosted AI guards are unchanged. Alex's separate Community posts/leaderboard remain in their original tab. The earlier deferred battle draft is not part of this branch.
 
-## Run against the skeleton
+## Run the integrated app
 
-In `web`, use the skeleton's existing dependencies and local MongoDB configuration:
+In `web`, use the existing dependencies and database configuration:
 
 ```sh
 npm ci
-POKEPET_LOCAL_MONGODB_URI=mongodb://127.0.0.1:27139 POKEPET_LOCAL_DATABASE=pokepet_local_memories_demo npm run dev -- --hostname 127.0.0.1 --port 3037
+POKEPET_DATABASE_MODE=local POKEPET_RUNTIME_MODE=local POKEPET_LOCAL_MONGODB_URI=mongodb://127.0.0.1:27139 POKEPET_LOCAL_DATABASE=pokepet_local_memories_demo npm run dev -- --hostname 127.0.0.1 --port 3038
 ```
 
-Open `http://127.0.0.1:3037/memories`. An existing Pokepet cookie is reused. Otherwise, the explicit start-journal form uses the existing `/api/session` endpoint. This retains the skeleton's browser-session identity limitations; clearing the cookie does not recover the previous identity.
+Open `http://127.0.0.1:3038` and use the main **Memories** tab. `/memories` remains available as a standalone journal. Both reuse `pokepet_session`; clearing the cookie does not recover the previous identity.
 
-Use a second browser session to see shared entries and react. Private entries must be absent. Making an entry private removes it on the next feed refresh; previously viewed content cannot be recalled from another person's memory or screenshots.
+For a no-paid-API demo, open **Tell your story → Manual activities if voice or AI reporting is unavailable → Earlier adventures**, confirm an activity, then open **Memories**. The private card shows the awarded game points. Share it explicitly; another signed-in player can see it through the shared feed or map player card. Making it private removes access on the next request.
 
-## Alex integration points
+## Host connections
 
-### Use the app's database and sessions
+### Database and sessions
 
-`src/server/memories/local-runtime.ts` is a thin adapter for the skeleton's local-only configuration. At integration, replace only its connection adapter with Alex's existing runtime. The reusable factory accepts the existing services:
+`src/server/memories/local-runtime.ts` now uses the host's `databaseConfig()` selection for local MongoDB or Atlas, with the same database name, session records and request guard. No separate credentials or configuration are introduced. Atlas selection is implemented; this integration was verified only against local MongoDB. Hosted/live-Atlas acceptance is still outstanding.
 
-```ts
-const memories = new MemoriesService(existingDb);
-await memories.initialize(); // indexes on the memories collection only
-const handler = createMemoriesApi(
-  memories,
-  existingBackboneService,
-  existingRequestGuard,
-);
-```
+### Durable activity capture
 
-The guard must validate host/origin and JSON content type for mutations. Authentication still resolves the existing `pokepet_session` cookie through `actor()`. No client-submitted owner ID is trusted for writes. Atlas is an integration dependency owned by Alex; this branch does not create a second configuration or claim Atlas verification.
+`completionMemory()` creates stable, server-derived completion metadata. Progression and voice/text services store it in the same atomic update as the earned reward receipt. The reward path makes no call to the memories collection.
 
-### Record a completed mission
+When the owner lists their journal, `syncCompletedActivities()` projects missing committed receipts through `recordMissionCompletion()`. IDs deduplicate by owner and command; ownership is checked and sharing/reactions are preserved. A failed journal write can be retried by refreshing, without rerunning the activity or awarding points again. Keepsakes use the original completion time and awarded amount. No raw voice audio, transcript or typed report is copied into the memory.
 
-After the existing progression handler durably commits a reward, pass its canonical completion data to the server-only method:
+This is on-demand delivery, not a background worker. Historical receipts created before this integration lack completion metadata and are not backfilled. Existing progression limits still apply. Voice/text keepsakes use the generic title “A moment together”; live provider calls were not made during verification.
 
-```ts
-await memories.recordMissionCompletion({
-  ownerId: authenticatedPlayer._id,
-  petId: savedPet._id,
-  completionId: committedCompletion.id,
-  missionId: committedCompletion.missionId,
-  title: committedCompletion.title,
-  kind: "play",
-  completedAt: committedCompletion.completedAt,
-  rewardPoints: committedCompletion.awardedPoints,
-});
-```
+### Navigation
 
-These variable names illustrate the mapping, not a claim about Alex's unpushed schema. `completionId` must identify one occurrence, including the canonical day for daily missions; all payload fields must be stable across retries. The method checks owner/pet association, deduplicates by owner and completion, records the awarded amount without changing progression, and rejects conflicting replays. There is no browser endpoint accepting mission/reward claims.
-
-If the keepsake write fails after a mission commit, keep the earned reward and retry this hook using the saved completion. A durable outbox or backfill from confirmed completion records is the host integration's responsibility. Automatic mission capture is not connected in this older skeleton because Alex's authoritative completion code is not pushed yet.
-
-### Mount the UI
-
-Link the existing shell to `/memories`, or import `src/features/memories/MemoriesExperience.tsx`. Styling is scoped with a CSS module. Link a selected player to `/memories?player=${encodeURIComponent(playerId)}`; only that player's public entries are returned. No shared shell or map file has been edited.
+The main shell mounts `MemoriesExperience` with `embedded`, `active` and `playerId` props. It refreshes when opened and remains mounted to preserve unsaved drafts. The existing map player dialog opens that player's shared memories. The original Community posts/leaderboard and battle flows retain their ownership and behavior.
 
 ## API and storage
 
@@ -84,11 +59,13 @@ The `memories` collection is owned by this module. Saved names are snapshots, no
 ## Minimal verification
 
 ```sh
-POKEPET_TEST_MONGODB_URI=mongodb://127.0.0.1:27139 node --test test/memories.test.ts
+POKEPET_TEST_MONGODB_URI=mongodb://127.0.0.1:27139 node --test test/memories.test.ts test/memories-integration.test.ts
 npm run typecheck
 npm run build
 ```
 
 The focused integration test uses real isolated MongoDB records and leaves its named test database intact. It checks concurrent duplicate saves, mission retries, owner isolation, sharing/unsharing, stale privacy updates, reactions, pagination and reconnect persistence. It must not be pointed at Atlas or a shared production database.
 
-Verified locally on 1 November 2026: the focused real-MongoDB test passed; production Next build and TypeScript check passed; production HTTP routes passed a two-session private-save/share/paw/unshare check. Safari verified session creation, journal creation, explicit sharing, reload persistence and community display, with desktop and 390px responsive layout inspection. Formatting was checked with Prettier; the skeleton has no configured TypeScript lint command. No Atlas writes, live location discovery, live AI requests or deployment were performed. Alex's mission-completion/runtime/shell wiring remains the integration handoff.
+Verified locally on 1 November 2026: production build and TypeScript passed; nine focused memory/progression/daily/voice tests passed with zero skips, including concurrent retries, restart recovery and failed memory delivery with earned points intact. Production HTTP smoke verified two sessions, completion/retry → one private keepsake → sharing → player-filtered feed → paw → unsharing, with points unchanged. Voice/text providers were stubbed; no paid requests were made. Changed module files passed Prettier; the project has no configured TypeScript lint command.
+
+The integrated root page loaded in Safari with the existing player and registered players. The original standalone journal's save/share/reload and desktop/390px layouts were previously browser-verified. Full click-through of the newly integrated shell/player-card path remains a manual acceptance item: Safari was in active use for the user's mock, so testing did not interrupt that work. No live Atlas verification or deployment was performed by this integration.

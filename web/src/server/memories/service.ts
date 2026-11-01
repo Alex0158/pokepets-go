@@ -6,6 +6,7 @@ import {
   type Filter,
 } from "mongodb";
 import type { Pet, Player } from "../../shared/multiplayer.ts";
+import type { Progression } from "../progression/rules.ts";
 import {
   MEMORY_KINDS,
   type ConfirmedMissionMemory,
@@ -195,6 +196,47 @@ export class MemoriesService {
       fingerprint: hash(content),
     });
   }
+  /** Project only committed receipts. If delivery fails, opening the journal
+   * again retries it without ever executing the activity or reward again.
+   */
+  async syncCompletedActivities(ownerId: string) {
+    const progress = await this.db
+      .collection<Progression>("progressions")
+      .findOne(
+        { ownerId },
+        { projection: { _id: 1, ownerId: 1, receipts: 1 }, maxTimeMS: 2000 },
+      );
+    if (!progress) return;
+    const completions = progress.receipts.flatMap((receipt) =>
+      receipt.memory ? [receipt.memory] : [],
+    );
+    if (!completions.length) return;
+    const ids = completions.map((completion) =>
+      hash([ownerId, "mission", completion.completionId]),
+    );
+    const existing = new Set(
+      (
+        await this.records
+          .find(
+            { ownerId, _id: { $in: ids } },
+            { projection: { _id: 1 }, maxTimeMS: 2000 },
+          )
+          .toArray()
+      ).map((record) => record._id),
+    );
+    const missing = completions.filter((completion, index) => {
+      if (completion.ownerId !== ownerId || completion.petId !== progress._id)
+        fail("invalid_completion", 400);
+      return !existing.has(ids[index]);
+    });
+    for (let index = 0; index < missing.length; index += 4) {
+      await Promise.all(
+        missing
+          .slice(index, index + 4)
+          .map((completion) => this.recordMissionCompletion(completion)),
+      );
+    }
+  }
   async read(viewerId: string, memoryId: string) {
     const result = await this.records.findOne({
       _id: identifier(memoryId),
@@ -209,6 +251,7 @@ export class MemoriesService {
     cursor: string | null,
     ownerId?: string | null,
   ): Promise<MemoryPage> {
+    if (scope === "mine") await this.syncCompletedActivities(viewerId);
     const filter: Filter<MemoryRecord> =
       scope === "mine"
         ? { ownerId: viewerId }

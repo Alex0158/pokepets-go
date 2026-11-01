@@ -103,7 +103,12 @@ function KeepsakeArt({ kind }: { kind: MemoryKind }) {
   );
 }
 
-export default function MemoriesExperience() {
+export default function MemoriesExperience({
+  embedded = false,
+  active = true,
+  playerId = "",
+}: { embedded?: boolean; active?: boolean; playerId?: string } = {}) {
+  const Content = embedded ? "section" : "main";
   const [profile, setProfile] = useState<Profile | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [tab, setTab] = useState<Tab>("mine");
@@ -182,7 +187,8 @@ export default function MemoriesExperience() {
   }, [report]);
   useEffect(() => {
     mounted.current = true;
-    const player = new URLSearchParams(window.location.search).get("player");
+    const player =
+      !embedded && new URLSearchParams(window.location.search).get("player");
     if (player) {
       setPlayerFilter(player);
       setTab("community");
@@ -192,14 +198,20 @@ export default function MemoriesExperience() {
       mounted.current = false;
       generation.current++;
     };
-  }, [connect]);
+  }, [connect, embedded]);
   useEffect(() => {
-    if (profile) {
+    if (!embedded) return;
+    setPlayerFilter(playerId);
+    setTab(playerId ? "community" : "mine");
+    setSharing(null);
+  }, [embedded, playerId]);
+  useEffect(() => {
+    if (profile && active) {
       setItems([]);
       setCursor(null);
       void load();
     }
-  }, [profile, load]);
+  }, [profile, load, active]);
   async function startSession(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -294,40 +306,46 @@ export default function MemoriesExperience() {
     setComposer(next === "mine" && pending !== null);
   }
   return (
-    <div className={styles.experience}>
-      <header className={styles.header}>
-        <a href="/" className={styles.brand}>
-          <span>
-            <Paw />
+    <div className={`${styles.experience} ${embedded ? styles.embedded : ""}`}>
+      {!embedded && (
+        <header className={styles.header}>
+          <a href="/" className={styles.brand}>
+            <span>
+              <Paw />
+            </span>
+            pokepet<span className={styles.go}>GO</span>
+          </a>
+          <span className={styles.chapter}>
+            THE LITTLE THINGS, KEPT FOREVER
           </span>
-          pokepet<span className={styles.go}>GO</span>
-        </a>
-        <span className={styles.chapter}>THE LITTLE THINGS, KEPT FOREVER</span>
-        <span className={styles.identity}>
-          {profile ? profile.player.displayName : "Your adventure journal"}
-        </span>
-      </header>
-      <main className={styles.main}>
-        <div className={styles.intro}>
-          <div>
-            <p className={styles.eyebrow}>A LIFE WELL PLAYED</p>
-            <h1>
-              Small adventures.
-              <br />
-              <em>Big memories.</em>
-            </h1>
-            <p className={styles.description}>
-              The muddy paws. The favourite toy. The quiet walk home.
-              <br />
-              Keep the moments that make your pet, your pet.
-            </p>
+          <span className={styles.identity}>
+            {profile ? profile.player.displayName : "Your adventure journal"}
+          </span>
+        </header>
+      )}
+      <Content className={styles.main}>
+        {!embedded && (
+          <div className={styles.intro}>
+            <div>
+              <p className={styles.eyebrow}>A LIFE WELL PLAYED</p>
+              <h1>
+                Small adventures.
+                <br />
+                <em>Big memories.</em>
+              </h1>
+              <p className={styles.description}>
+                The muddy paws. The favourite toy. The quiet walk home.
+                <br />
+                Keep the moments that make your pet, your pet.
+              </p>
+            </div>
+            <div className={styles.heroArt} aria-hidden="true">
+              <span className={styles.heroRing} />
+              <Paw />
+              <span>better, together.</span>
+            </div>
           </div>
-          <div className={styles.heroArt} aria-hidden="true">
-            <span className={styles.heroRing} />
-            <Paw />
-            <span>better, together.</span>
-          </div>
-        </div>
+        )}
         {error && (
           <div className={styles.error} role="alert">
             <span>{error}</span>
@@ -614,7 +632,7 @@ export default function MemoriesExperience() {
                       </p>
                       <p className={styles.source}>
                         {memory.source === "mission"
-                          ? `Mission keepsake · ${memory.rewardPoints} points earned`
+                          ? `Activity keepsake · ${memory.rewardPoints} game points · Owner-reported`
                           : memory.owned
                             ? "From your journal · owner-written"
                             : "From their journal · owner-written"}
@@ -673,12 +691,14 @@ export default function MemoriesExperience() {
             )}
           </>
         )}
-        <footer className={styles.footer}>
-          <Paw />
-          <span>Less scrolling. More tail-wagging.</span>
-          <a href="/">Back to Pokepet Go ↗</a>
-        </footer>
-      </main>
+        {!embedded && (
+          <footer className={styles.footer}>
+            <Paw />
+            <span>Less scrolling. More tail-wagging.</span>
+            <a href="/">Back to Pokepet Go ↗</a>
+          </footer>
+        )}
+      </Content>
     </div>
   );
 }

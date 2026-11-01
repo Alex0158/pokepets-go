@@ -1,8 +1,9 @@
 import type { Pet, Stats } from '../../shared/multiplayer.ts';
+import type { ConfirmedMissionMemory } from '../../shared/memories.ts';
 import { fail } from '../core/battle.ts';
 
 export type ProgressionAction = {kind:'mission';missionId:string;confirmed:boolean}|{kind:'upgrade';stat:keyof Stats};
-export type ProgressionReceipt = {commandId:string;digest:string;version:number;kind:ProgressionAction['kind'];pointsAfter:number;statsAfter:Stats};
+export type ProgressionReceipt = {commandId:string;digest:string;version:number;kind:ProgressionAction['kind'];pointsAfter:number;statsAfter:Stats;memory?:ConfirmedMissionMemory};
 export type DailyMissions = {date:string;completedMissionIds:string[]};
 export type Progression = {_id:string;ownerId:string;points:number;stats:Stats;completedMissionIds:string[];dailyMissions?:DailyMissions;version:number;receipts:ProgressionReceipt[];createdAt:Date;updatedAt:Date};
 export const MISSIONS:Readonly<Record<string,number>>=Object.freeze({'sniff-safari':20,'living-room-play':15,'quiet-company':10});

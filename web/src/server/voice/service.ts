@@ -3,6 +3,7 @@ import { MongoServerError } from 'mongodb';
 import type { Db } from 'mongodb';
 import type { BackboneService } from '../core/service.ts';
 import { fail } from '../core/battle.ts';
+import { completionMemory } from '../memories/completion.ts';
 import { ProgressionService } from '../progression/service.ts';
 import { MAX_RECEIPTS } from '../progression/rules.ts';
 import type { Progression, ProgressionReceipt } from '../progression/rules.ts';
@@ -83,7 +84,9 @@ export class VoiceService {
       if(current.receipts.length>=MAX_RECEIPTS)fail('progression_limit_reached');
       const points=current.points+assessed.points,version=current.version+1;
       const receipt:VoiceReceipt={commandId,digest:fingerprint,version,kind:'mission',pointsAfter:points,statsAfter:{...current.stats},voicePoints:assessed.points,voiceReason:assessed.reason};
-      const next:Progression={...current,points,version,updatedAt:new Date(),receipts:[...current.receipts,receipt]};
+      const completedAt=new Date();
+      receipt.memory=completionMemory(current,commandId,'reported-activity',assessed.points,completedAt);
+      const next:Progression={...current,points,version,updatedAt:completedAt,receipts:[...current.receipts,receipt]};
       const result=await col.replaceOne({_id:current._id,ownerId:current.ownerId,version:current.version,'receipts.commandId':{$ne:commandId}},next,{maxTimeMS:2000});
       if(result.modifiedCount===1){await this.db.collection<Claim>('voice_jobs').updateOne({_id:claim._id,leaseId:claim.leaseId},{$set:{status:'complete'}},{maxTimeMS:2000});return {snapshot:await progress.get(token),receipt:{commandId,version,kind:'mission',pointsAfter:points,statsAfter:receipt.statsAfter},duplicate:false,transcript:assessed.transcript,points:assessed.points,reason:assessed.reason};}
     }

@@ -1,24 +1,26 @@
 import { MongoClient } from "mongodb";
-import { localDatabaseConfig } from "../db/local-runtime.ts";
+import { databaseConfig } from "../db/local-runtime.ts";
 import { MongoRepository } from "../db/mongo-repository.ts";
 import { BackboneService } from "../core/service.ts";
 import { localRequest } from "../core/http.ts";
 import { MemoriesService } from "./service.ts";
 import { createMemoriesApi, memoryError } from "./http.ts";
 
-// Thin skeleton adapter only. The host app can inject its existing Db/session
-// service into createMemoriesApi; no new session or Atlas configuration is needed.
+// Use the host's local/Atlas database selection and shared request/session guard.
+// A module pool follows the existing community adapter without changing its runtime.
 const state = globalThis as typeof globalThis & {
   pokepetMemoriesApi?: Promise<ReturnType<typeof createMemoriesApi>>;
 };
 async function connect() {
-  const { uri, name } = localDatabaseConfig();
+  const { uri, name, kind } = databaseConfig();
   const client = new MongoClient(uri, {
-    directConnection: true,
+    directConnection: kind === "local",
     maxPoolSize: 3,
-    serverSelectionTimeoutMS: 1500,
-    connectTimeoutMS: 1500,
-    timeoutMS: 4000,
+    serverSelectionTimeoutMS: kind === "local" ? 1500 : 10000,
+    connectTimeoutMS: kind === "local" ? 1500 : 10000,
+    timeoutMS: kind === "local" ? 4000 : 15000,
+    writeConcern: { w: "majority", journal: true },
+    ...(kind === "atlas" ? { tls: true } : {}),
   });
   try {
     await client.connect();
