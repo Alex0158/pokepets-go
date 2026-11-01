@@ -50,14 +50,6 @@ dialog.community-dialog {
 .neighbors-radius {
   color: var(--muted);
 }
-.neighbors-demo {
-  font-size: 9px;
-  color: #abb2c4;
-  border: 1px solid #394151;
-  border-radius: 5px;
-  padding: 5px 7px;
-  white-space: nowrap;
-}
 .neighbors-search {
   display: flex;
   align-items: center;

@@ -1,4 +1,4 @@
-/* Afterglow is a local UI concept. Geography is stylised; players and activities are fixtures. */
+/* Afterglow: local adventures, browser-saved progress, and a stylised London map. */
 const STORAGE_KEY = "pokepet-afterglow-v1";
 const missions = [
   {
@@ -20,7 +20,7 @@ const missions = [
     id: "play",
     title: "A little chase, a lot of joy",
     kind: "PLAY & CONNECT",
-    place: "Home base · demo",
+    place: "Home base",
     minutes: 10,
     xp: 60,
     filter: "indoors",
@@ -45,6 +45,91 @@ const missions = [
       "We slowed down, watched the world, and made an ordinary moment ours.",
     icon: "bond",
     mapPosition: [-126, -93],
+  },
+  {
+    id: "towpath",
+    title: "Follow the water",
+    kind: "WALK & DISCOVER",
+    place: "West towpath · demo",
+    minutes: 20,
+    xp: 100,
+    filter: "outdoors",
+    description:
+      "Follow the canal at your own pace. Let your companion stop for a sniff and find three little details you usually walk past.",
+    memory: "Three new discoveries and a long, lovely wander beside the water.",
+    icon: "walk",
+    mapPosition: [-620, -196],
+  },
+  {
+    id: "courtyard",
+    title: "A pocket of quiet",
+    kind: "PAUSE & BOND",
+    place: "West courtyard · demo",
+    minutes: 5,
+    xp: 40,
+    filter: "outdoors",
+    description:
+      "Find a comfortable spot in the little green courtyard. Spend a few quiet minutes together and let the city carry on around you.",
+    memory: "A tiny green corner, a deep breath, and time just for us.",
+    icon: "bond",
+    mapPosition: [-390, 113],
+  },
+  {
+    id: "parkplay",
+    title: "One more little chase",
+    kind: "PLAY & CONNECT",
+    place: "Haggerston Park · demo",
+    minutes: 15,
+    xp: 80,
+    filter: "outdoors",
+    description:
+      "Bring a favourite toy and enjoy a gentle play session in a suitable open space. Keep it comfortable and fun for your companion.",
+    memory: "A favourite toy, fresh air, and a very happy sidekick.",
+    icon: "play",
+    mapPosition: [470, 365],
+  },
+  {
+    id: "gardenloop",
+    title: "The long way home",
+    kind: "WALK & DISCOVER",
+    place: "Garden loop · demo",
+    minutes: 25,
+    xp: 120,
+    filter: "outdoors",
+    description:
+      "Explore the outer garden path together. Take a break when you need one and turn the journey home into its own little adventure.",
+    memory: "We took the long way, and found a new favourite walk.",
+    icon: "walk",
+    mapPosition: [650, 540],
+  },
+  {
+    id: "sunset",
+    title: "Watch the evening settle",
+    kind: "PAUSE & BOND",
+    place: "East canal steps · demo",
+    minutes: 10,
+    xp: 60,
+    filter: "outdoors",
+    description:
+      "Pause beside the water in a comfortable, accessible spot. Watch the reflections and enjoy a little unhurried company.",
+    memory: "The water shimmered. We stayed a little longer.",
+    icon: "bond",
+    mapPosition: [650, -196],
+  },
+  {
+    id: "nosework",
+    title: "The great treat hunt",
+    kind: "PLAY & CONNECT",
+    place: "Neighbourhood nook · demo",
+    minutes: 10,
+    xp: 60,
+    filter: "indoors",
+    description:
+      "At home, hide a few suitable treats or a favourite toy in easy spots. Let your companion lead a gentle treasure hunt at their own pace.",
+    memory:
+      "A little nosework, a little teamwork, and treasure found together.",
+    icon: "play",
+    mapPosition: [-465, 360],
   },
 ];
 const defaults = {
@@ -93,8 +178,109 @@ try {
 } catch {
   persistent = false;
 }
+// Keep each companion's level and upgrades when changing the active pet.
+const validPet = (pet) =>
+  pet &&
+  typeof pet.id === "string" &&
+  typeof pet.name === "string" &&
+  ["cat", "corgi", "rabbit"].includes(pet.kind) &&
+  /^#[0-9a-f]{6}$/i.test(pet.color) &&
+  Number.isFinite(pet.totalXP) &&
+  pet.totalXP >= 0 &&
+  pet.stats &&
+  Object.keys(defaults.stats).every(
+    (key) => Number.isFinite(pet.stats[key]) && pet.stats[key] >= 0,
+  );
+state.pets = Array.isArray(state.pets)
+  ? state.pets
+      .filter(validPet)
+      .slice(0, 12)
+      .map((pet) => ({
+        ...pet,
+        photo: /^data:image\/jpeg;base64,[a-z0-9+/=]+$/i.test(pet.photo || "")
+          ? pet.photo
+          : "",
+        thumbnail: /^data:image\/png;base64,[a-z0-9+/=]+$/i.test(
+          pet.thumbnail || "",
+        )
+          ? pet.thumbnail
+          : "",
+      }))
+  : [];
+if (!state.pets.length)
+  state.pets = [
+    {
+      id: "miso",
+      name: state.pet,
+      kind: "cat",
+      color: "#b8a2ee",
+      totalXP: state.totalXP,
+      stats: { ...state.stats },
+    },
+  ];
+if (!state.pets.some((pet) => pet.id === state.activePetId))
+  state.activePetId = state.pets[0].id;
+function activePet() {
+  return state.pets.find((pet) => pet.id === state.activePetId);
+}
+function rememberActivePet() {
+  Object.assign(activePet(), {
+    name: state.pet,
+    totalXP: state.totalXP,
+    stats: { ...state.stats },
+  });
+}
+function choosePet(id) {
+  const next = state.pets.find((pet) => pet.id === id);
+  if (!next) return;
+  rememberActivePet();
+  state.activePetId = id;
+  state.pet = next.name;
+  state.totalXP = next.totalXP;
+  state.stats = { ...next.stats };
+  save();
+  refresh();
+  showPet();
+}
+function showPetStudio(existing) {
+  if (!existing && state.pets.length >= 12) {
+    toast("Your collection is full. You can keep up to 12 companions.");
+    return;
+  }
+  window.PetStudio.open({
+    openDialog,
+    dialog,
+    escapeHTML,
+    icon,
+    pet: existing,
+    onBack: showPet,
+    onSave: (created) => {
+      rememberActivePet();
+      if (existing) {
+        Object.assign(activePet(), created);
+        state.pet = created.name;
+      } else {
+        const id = `pet-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const next = {
+          ...created,
+          id,
+          totalXP: 0,
+          stats: { Speed: 10, Defense: 10, Attack: 10, Health: 10 },
+        };
+        state.pets.push(next);
+        state.activePetId = id;
+        state.pet = next.name;
+        state.totalXP = next.totalXP;
+        state.stats = { ...next.stats };
+      }
+      save();
+      refresh();
+      showPet();
+      toast(`${created.name} is ready for adventure.`);
+    },
+  });
+}
 let selectedId = "moonwalk";
-let filter = "all";
 let zoom = 1;
 let neighborhood = null;
 let photoURL = "";
@@ -116,6 +302,7 @@ const icon = (name, className = "") =>
 const petArt = (className) =>
   `<svg class="${className || ""}" viewBox="0 0 200 200" aria-hidden="true"><use href="#pet-character"/></svg>`;
 function save() {
+  rememberActivePet();
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
@@ -131,16 +318,21 @@ function toast(message) {
   toastTimer = setTimeout(() => element.classList.remove("visible"), 3500);
 }
 function openDialog(html) {
+  window.PetStudio?.dispose();
   disposeBattle();
   disposePetPreview();
-  dialog.classList.remove("battle-dialog", "community-dialog");
+  dialog.classList.remove(
+    "battle-dialog",
+    "community-dialog",
+    "pet-studio-dialog",
+  );
   content.innerHTML = html;
   if (!dialog.open) dialog.showModal();
   dialog.scrollTop = 0;
 }
 function storageMessage() {
   return persistent
-    ? "Saved on this device for this concept."
+    ? "Saved on this device."
     : "Storage is unavailable; progress lasts for this visit.";
 }
 function questArt(kind) {
@@ -201,12 +393,12 @@ function renderWorld() {
     .map(([x, y]) => tree(x, y, 0.6))
     .join("");
   document.querySelector("#world-map").innerHTML = `
-    <svg viewBox="0 0 960 650" preserveAspectRatio="xMidYMid slice" role="group" aria-label="Stylised map around 55 Laburnum Street in Haggerston, London. Regent’s Canal lies north of Laburnum Street, with Haggerston Bridge to the west and Queensbridge Road to the east. Distances and buildings are approximate.">
+    <svg viewBox="-300 -100 1560 1000" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Stylised map around 55 Laburnum Street in Haggerston, London. Regent’s Canal lies north of Laburnum Street, with Haggerston Bridge to the west and Queensbridge Road to the east. Distances and buildings are approximate.">
       <g aria-hidden="true">
-      <rect width="960" height="650" fill="#293d49"/>
+      <rect x="-300" y="-100" width="1560" height="1000" fill="#293d49"/>
       <g transform="matrix(.7 .37 -.7 .37 480 245)">
         <rect x="-365" y="83" width="156" height="114" fill="#48685b"/>
-        <rect x="390" y="321" width="350" height="300" fill="#496c58"/>
+        <rect x="390" y="321" width="450" height="360" fill="#496c58"/>
         <path d="M-900 35H900M-900 285H900M-150-900V285M350-900V900" stroke="#8d9797" stroke-width="42" fill="none"/>
         <path d="M-900 35H900M-900 285H900M-150-900V285M350-900V900" stroke="#35404f" stroke-width="28" fill="none"/>
         <path d="M-900-148H900" stroke="#8a989a" stroke-width="90"/>
@@ -214,7 +406,7 @@ function renderWorld() {
         <path d="M-900-148H900" stroke="#90c3cc" stroke-width="1.5" stroke-dasharray="20 30"/>
         <path d="M-150-191V-105M350-191V-105" stroke="#b2a496" stroke-width="44"/>
         <path d="M-150-191V-105M350-191V-105" stroke="#465365" stroke-width="28"/>
-        <path class="route-path" d="M-110 100V17H-126V-196H170M-110 100V17H123V83M-110 100V17H-126V-93" fill="none" stroke="#d5fb78" stroke-width="4" stroke-dasharray="7 10"/>
+        <path class="route-path" d="M-110 100V17H-126V-196H650M-126-196H-620M-110 100V17H123V83M-110 100V17H-126V-93M-110 17H-390V113M-110 17H327V310H650V540M327 310H470V365M-110 100V263H-465V360" fill="none" stroke="#d5fb78" stroke-width="4" stroke-dasharray="7 10"/>
       </g>
       ${city}${trees}
       <text x="590" y="221" class="map-location-label" transform="rotate(28 590 221)">REGENT’S CANAL</text>
@@ -230,7 +422,26 @@ function renderWorld() {
       <text x="343" y="264" text-anchor="middle" class="map-player-label">YOU + <tspan id="map-pet-name">${escapeHTML(state.pet.toUpperCase())}</tspan></text>
       </g>
       ${missions.map(marker).join("")}
+      ${(window.AfterglowMap?.players || [])
+        .map((player, index) => {
+          const [x, z] = player.position;
+          return `<g class="map-player-marker" data-player="${index}" role="button" tabindex="0" aria-label="Meet ${player.pet}, ${player.breed}" transform="translate(${480 + (x - z) * 0.7} ${245 + (x + z) * 0.37})">${window.AfterglowMap.petPortrait(player).replace("<svg ", '<svg x="-15" y="-35" width="30" height="30" ')}<text text-anchor="middle" y="8" class="map-player-label">${player.name} + ${player.pet}</text></g>`;
+        })
+        .join("")}
     </svg>`;
+  document.querySelectorAll(".map-player-marker").forEach((element) => {
+    const show = () =>
+      showMapPlayer(
+        window.AfterglowMap.players[Number(element.dataset.player)],
+      );
+    element.addEventListener("click", show);
+    element.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        show();
+      }
+    });
+  });
   document.querySelectorAll(".map-marker").forEach((element) => {
     element.addEventListener("click", () =>
       selectMission(element.dataset.mission),
@@ -243,8 +454,9 @@ function renderWorld() {
     });
   });
 }
-function selectMission(id) {
+function selectMission(id, focusMap = true) {
   selectedId = id;
+  if (focusMap) neighborhood?.focus(id);
   renderSelected();
   document.querySelector("#selected-mission").animate(
     [
@@ -263,29 +475,37 @@ function renderSelected() {
   const mission = missions.find((item) => item.id === selectedId);
   const completed = state.completed.includes(mission.id);
   document.querySelector("#selected-mission").innerHTML =
-    `<div class="selected-label"><span>${completed ? "ADVENTURE COLLECTED" : "YOUR NEXT ADVENTURE"}</span><span>0${missions.indexOf(mission) + 1} / 03</span></div><h2>${mission.title}</h2><p>${mission.place} · ${mission.filter === "indoors" ? "A little adventure at home" : "A new perspective awaits"}</p><div class="mission-meta"><span>${icon("clock")}${mission.minutes} min</span><span class="xp">${icon("star")}+${mission.xp} XP</span></div><button class="primary-button" id="selected-start">${completed ? "Revisit your memory" : "Let’s go together"}${icon("arrow")}</button>`;
+    `<div class="selected-label"><span>${completed ? "ADVENTURE COLLECTED" : "YOUR NEXT ADVENTURE"}</span><span class="mission-navigation"><button id="mission-previous" aria-label="Previous adventure">‹</button><span>${String(missions.indexOf(mission) + 1).padStart(2, "0")} / ${String(missions.length).padStart(2, "0")}</span><button id="mission-next" aria-label="Next adventure">›</button></span></div><h2>${mission.title}</h2><p>${mission.place} · ${mission.filter === "indoors" ? "A little adventure at home" : "A new perspective awaits"}</p><div class="mission-meta"><span>${icon("clock")}${mission.minutes} min</span><span class="xp">${icon("star")}+${mission.xp} XP</span></div><button class="primary-button" id="selected-start">${completed ? "Revisit your memory" : "Let’s go together"}${icon("arrow")}</button>`;
+  for (const [id, step] of [
+    ["mission-previous", -1],
+    ["mission-next", 1],
+  ]) {
+    document.querySelector(`#${id}`).addEventListener("click", () => {
+      const next =
+        (missions.indexOf(mission) + step + missions.length) % missions.length;
+      selectMission(missions[next].id);
+      document.querySelector(`#${id}`).focus({ preventScroll: true });
+    });
+  }
   document
     .querySelector("#selected-start")
     .addEventListener("click", () =>
       completed ? showMemories() : showMission(mission.id),
     );
 }
-function renderQuests() {
-  document.querySelector("#quest-grid").innerHTML = missions
-    .filter((mission) => filter === "all" || mission.filter === filter)
-    .map(
-      (mission) =>
-        `<button class="quest-card" data-quest="${mission.id}"><div class="quest-art">${questArt(mission.icon)}</div><div><small>${state.completed.includes(mission.id) ? "COLLECTED · " : ""}${mission.kind}</small><h3>${mission.title}</h3><p>${mission.minutes} min <span>·</span> +${mission.xp} XP <span>·</span> ${mission.filter === "indoors" ? "Indoors" : "Outdoors"}</p></div>${icon("arrow", "quest-arrow")}</button>`,
-    )
-    .join("");
-  document.querySelectorAll("[data-quest]").forEach((button) =>
-    button.addEventListener("click", () => {
-      selectMission(button.dataset.quest);
-      showMission(button.dataset.quest);
-    }),
-  );
-}
 function refresh() {
+  const pet = activePet();
+  document.querySelector("#pet-species").textContent =
+    `${{ cat: "Mooncat", corgi: "Dog", rabbit: "Rabbit" }[pet.kind]} · Curious spirit`;
+  const portrait = document.querySelector(".pet-portrait .pet-art");
+  if (pet.thumbnail && /^data:image\/png;base64,/.test(pet.thumbnail)) {
+    const image = document.createElement("img");
+    image.className = "pet-art";
+    image.src = pet.thumbnail;
+    image.alt = pet.name;
+    portrait.replaceWith(image);
+  } else if (portrait.tagName.toLowerCase() !== "svg")
+    portrait.outerHTML = petArt("pet-art");
   document.querySelector("#points").textContent = state.points;
   document.querySelector("#pet-name").textContent = state.pet;
   document.querySelector("#bond-pet-name").textContent = state.pet;
@@ -296,7 +516,6 @@ function refresh() {
   const label = document.querySelector("#map-pet-name");
   if (label) label.textContent = state.pet.toUpperCase();
   renderSelected();
-  renderQuests();
 }
 function showMission(id, active = false) {
   const mission = missions.find((item) => item.id === id);
@@ -305,7 +524,7 @@ function showMission(id, active = false) {
     return;
   }
   openDialog(
-    `<span class="eyebrow">${active ? "YOUR ADVENTURE, YOUR PACE" : mission.kind}</span><h2 id="dialog-title">${mission.title}</h2><p>${mission.description}</p><div class="dialog-art">${questArt(mission.icon)}</div><div class="mission-meta"><span>${icon("clock")}${mission.minutes} min</span><span>${icon("pin")}${mission.place}</span><span class="xp">+${mission.xp} XP</span></div><p>${active ? "When you’re ready, confirm you enjoyed this activity together. You can also skip it — there’s always another adventure." : "An adventure for you and your pet. A new memory for your collection."}</p><p class="confirm-note">${active ? "Owner-confirmed activity · no location tracking." : "Sample world · take any activity at your pet’s pace."}</p><div class="dialog-actions"><button class="secondary-button" id="mission-cancel">${active ? "Skip for now" : "Maybe later"}</button><button class="primary-button" id="mission-action">${active ? "We did it! Collect memory" : "Start adventure"}${icon("arrow")}</button></div>`,
+    `<span class="eyebrow">${active ? "YOUR ADVENTURE, YOUR PACE" : mission.kind}</span><h2 id="dialog-title">${mission.title}</h2><p>${mission.description}</p><div class="dialog-art">${questArt(mission.icon)}</div><div class="mission-meta"><span>${icon("clock")}${mission.minutes} min</span><span>${icon("pin")}${mission.place}</span><span class="xp">+${mission.xp} XP</span></div><p>${active ? "When you’re ready, confirm you enjoyed this activity together. You can also skip it — there’s always another adventure." : "An adventure for you and your pet. A new memory for your collection."}</p><p class="confirm-note">${active ? "Owner-confirmed activity · no location tracking." : "Take every adventure at your pet’s pace."}</p><div class="dialog-actions"><button class="secondary-button" id="mission-cancel">${active ? "Skip for now" : "Maybe later"}</button><button class="primary-button" id="mission-action">${active ? "We did it! Collect memory" : "Start adventure"}${icon("arrow")}</button></div>`,
   );
   document.querySelector("#mission-cancel").addEventListener("click", () => {
     dialog.close();
@@ -352,7 +571,7 @@ function completeMission(id) {
 }
 function showPet() {
   openDialog(
-    `<span class="eyebrow">YOUR LITTLE ADVENTURER</span><h2 id="dialog-title">Meet ${escapeHTML(state.pet)}.</h2><p>Curious spirit. Loyal sidekick. Always ready for one more little adventure.</p><div id="pet-profile-stage" class="pet-profile-stage">${petArt()}</div><div class="pet-profile-actions" aria-label="Play with your pet"><button class="secondary-button" data-pet-motion="wave">${icon("paw")} Say hello</button><button class="secondary-button" data-pet-motion="play">${icon("star")} Play</button><button class="secondary-button" data-pet-motion="heal">${icon("heart")} Give love</button></div><p id="pet-profile-mood" class="pet-profile-mood" role="status" aria-live="polite">A curious glance. A little tail wag. Happy to see you.</p><div class="detail-label">${state.points} XP available · 40 XP per upgrade</div><div class="stats-grid">${Object.entries(
+    `<div class="pet-collection-heading"><span class="eyebrow">MY PETS · ${state.pets.length}</span><button class="secondary-button" id="pet-add">+ Add a pet</button></div><div class="pet-collection" aria-label="Your companions">${state.pets.map((pet) => `<button data-select-pet="${escapeHTML(pet.id)}" aria-pressed="${pet.id === state.activePetId}">${pet.thumbnail && /^data:image\/png;base64,/.test(pet.thumbnail) ? `<img src="${pet.thumbnail}" alt=""/>` : petArt()}<span>${escapeHTML(pet.name)}<small>LVL ${Math.floor(pet.totalXP / 100) + 1}</small></span></button>`).join("")}</div><span class="eyebrow">YOUR LITTLE ADVENTURER</span><h2 id="dialog-title">Meet ${escapeHTML(state.pet)}.</h2><p>Curious spirit. Loyal sidekick. Always ready for one more little adventure.</p><div id="pet-profile-stage" class="pet-profile-stage">${petArt()}</div><div class="pet-profile-actions" aria-label="Play with your pet"><button class="secondary-button" data-pet-motion="wave">${icon("paw")} Say hello</button><button class="secondary-button" data-pet-motion="play">${icon("star")} Play</button><button class="secondary-button" data-pet-motion="heal">${icon("heart")} Give love</button></div><p id="pet-profile-mood" class="pet-profile-mood" role="status" aria-live="polite">A curious glance. A little tail wag. Happy to see you.</p><button class="secondary-button pet-studio-link" id="pet-studio-open">Expressions, angles & sprites ↗</button><div class="detail-label">${state.points} XP available · 40 XP per upgrade</div><div class="stats-grid">${Object.entries(
       state.stats,
     )
       .map(
@@ -361,9 +580,15 @@ function showPet() {
       )
       .join(
         "",
-      )}</div><p class="confirm-note">Fictional game stats · ${storageMessage()}</p><button class="primary-button" id="pet-customize">Customize your duo ${icon("arrow")}</button>`,
+      )}</div><p class="confirm-note">Game stats · ${storageMessage()}</p><button class="primary-button" id="pet-customize">Customize your duo ${icon("arrow")}</button>`,
   );
   mountPetPreview();
+  document.querySelector("#pet-add").onclick = () => showPetStudio();
+  document.querySelector("#pet-studio-open").onclick = () =>
+    showPetStudio(activePet());
+  document.querySelectorAll("[data-select-pet]").forEach((button) => {
+    button.onclick = () => choosePet(button.dataset.selectPet);
+  });
   document.querySelectorAll("[data-upgrade]").forEach((button) =>
     button.addEventListener("click", () => {
       if (state.points < 40) {
@@ -396,7 +621,8 @@ function mountPetPreview() {
   try {
     preview.scene = window.PokepetArena?.mount(host, {
       theme: "afterglow",
-      playerKind: "cat",
+      playerKind: activePet().kind,
+      playerColor: activePet().color,
       mode: "profile",
     });
   } catch {
@@ -446,10 +672,18 @@ function mountPetPreview() {
 }
 function showMemories() {
   openDialog(
-    `<span class="eyebrow">THE GOOD DAYS, COLLECTED</span><h2 id="dialog-title">Little moments.<br>Lasting memories.</h2><p>Your adventures with ${escapeHTML(state.pet)}, one chapter at a time.</p><div class="memory-list">${state.memories.length ? state.memories.map((memory) => `<article class="memory-card">${questArt(memory.icon)}<div><h3>${escapeHTML(memory.title)}</h3><p>${escapeHTML(memory.caption)}</p><small>${escapeHTML(memory.date)} · +${Number(memory.xp) || 0} XP</small></div></article>`).join("") : `<div class="empty-state">${icon("book")}<p>Your first memory is waiting to happen.<br>Complete an adventure to start your collection.</p></div>`}</div><p class="confirm-note">${storageMessage()} Memory artwork is preset illustration.</p><button class="primary-button" id="memories-explore">Find an adventure ${icon("compass")}</button>`,
+    `<span class="eyebrow">THE GOOD DAYS, COLLECTED</span><h2 id="dialog-title">Little moments.<br>Lasting memories.</h2><p>Your adventures with ${escapeHTML(state.pet)}, one chapter at a time.</p><div class="memory-list">${state.memories.length ? state.memories.map((memory) => `<article class="memory-card">${questArt(memory.icon)}<div><h3>${escapeHTML(memory.title)}</h3><p>${escapeHTML(memory.caption)}</p><small>${escapeHTML(memory.date)} · +${Number(memory.xp) || 0} XP</small></div></article>`).join("") : `<div class="empty-state">${icon("book")}<p>Your first memory is waiting to happen.<br>Complete an adventure to start your collection.</p></div>`}</div><p class="confirm-note">${storageMessage()}</p><button class="primary-button" id="memories-explore">Find an adventure ${icon("compass")}</button>`,
   );
   document
     .querySelector("#memories-explore")
+    .addEventListener("click", () => dialog.close());
+}
+function showMapPlayer(player) {
+  openDialog(
+    `<span class="eyebrow">MEET THE LOCAL PACK</span><h2 id="dialog-title">Meet ${escapeHTML(player.pet)}.</h2><div class="map-player-profile" style="--player-color:${player.color}">${window.AfterglowMap.petPortrait(player)}<div><strong>${escapeHTML(player.breed)}</strong><p>${escapeHTML(player.species)} · ${escapeHTML(player.coat)}</p><span>Out with ${escapeHTML(player.name)}</span></div></div><p>${escapeHTML(player.outing)}.</p><div class="map-player-activity">${icon("pin")} ${escapeHTML(player.activity)}</div><button class="primary-button" id="map-player-close">Back to exploring ${icon("compass")}</button>`,
+  );
+  document
+    .querySelector("#map-player-close")
     .addEventListener("click", () => dialog.close());
 }
 function showCommunity() {
@@ -463,7 +697,7 @@ function showCommunity() {
 }
 function showProfile() {
   openDialog(
-    `<span class="eyebrow">TWO CHARACTERS. ONE GREAT TEAM.</span><h2 id="dialog-title">Make it your duo.</h2><div class="profile-preview"><div><svg viewBox="0 0 100 180"><use href="#owner-character"/></svg><span>Owner avatar</span></div><div>${petArt()}<span>Separate pet</span></div></div><form id="profile-form"><label>Your name<input name="owner" type="text" maxlength="24" required value="${escapeHTML(state.owner)}"/></label><label>Your pet’s name<input name="pet" type="text" maxlength="18" required value="${escapeHTML(state.pet)}"/></label><label>Owner photo preview<input id="owner-photo" type="file" accept="image/png,image/jpeg,image/webp"/></label><div id="photo-container">${photoURL ? `<img class="photo-preview" src="${photoURL}" alt="Your selected owner photo preview"/>` : ""}</div><p class="confirm-note">Preview only. Your photo stays in this browser session and is not uploaded or transformed. The map uses a preset owner avatar; AI generation is not connected.</p><button class="primary-button" type="submit">Save your duo ${icon("arrow")}</button></form>`,
+    `<span class="eyebrow">TWO CHARACTERS. ONE GREAT TEAM.</span><h2 id="dialog-title">Make it your duo.</h2><div class="profile-preview"><div><svg viewBox="0 0 100 180"><use href="#owner-character"/></svg><span>Owner avatar</span></div><div>${petArt()}<span>Separate pet</span></div></div><form id="profile-form"><label>Your name<input name="owner" type="text" maxlength="24" required value="${escapeHTML(state.owner)}"/></label><label>Your pet’s name<input name="pet" type="text" maxlength="18" required value="${escapeHTML(state.pet)}"/></label><label>Your photo<input id="owner-photo" type="file" accept="image/png,image/jpeg,image/webp"/></label><div id="photo-container">${photoURL ? `<img class="photo-preview" src="${photoURL}" alt="Your selected photo"/>` : ""}</div><p class="confirm-note">Your photo stays in this browser session. Your map avatar keeps its current appearance.</p><button class="primary-button" type="submit">Save your duo ${icon("arrow")}</button></form>`,
   );
   document.querySelector("#owner-photo").addEventListener("change", (event) => {
     const file = event.target.files[0];
@@ -479,7 +713,7 @@ function showProfile() {
     if (photoURL) URL.revokeObjectURL(photoURL);
     photoURL = URL.createObjectURL(file);
     document.querySelector("#photo-container").innerHTML =
-      `<img class="photo-preview" src="${photoURL}" alt="Your selected owner photo preview"/>`;
+      `<img class="photo-preview" src="${photoURL}" alt="Your selected photo"/>`;
   });
   document
     .querySelector("#profile-form")
@@ -508,13 +742,13 @@ function disposeBattle() {
 }
 function showBattle() {
   openDialog(`
-    <div class="arena-heading"><span class="eyebrow">MOONRISE ARENA / SIMULATED MATCH</span><h2 id="dialog-title">A little friendly rivalry.</h2><p>Your mooncat. A worthy rival. One unforgettable showdown.</p></div>
+    <div class="arena-heading"><span class="eyebrow">MOONRISE ARENA / PRACTICE MATCH</span><h2 id="dialog-title">A little friendly rivalry.</h2><p>Your companion. A worthy rival. One unforgettable showdown.</p></div>
     <div class="cinematic-arena">
-      <div id="battle-stage" class="arena-canvas" aria-label="Animated battle between your mooncat and Nova the corgi"></div>
+      <div id="battle-stage" class="arena-canvas" aria-label="Animated battle between your companion and Nova the corgi"></div>
       <div class="arena-grain"></div>
       <div class="battle-hud opponent-hud"><div class="hud-title"><strong>Nova</strong><span>Lv. 07</span></div><div class="hud-species">CORGI <i>EARTH</i></div><div class="hud-health"><b>HP</b><div class="hp-track enemy-hp"><i id="enemy-bar"></i></div></div><div class="hud-numbers"><b id="enemy-hp">100</b> / 100</div></div>
       <div class="round-badge" id="battle-round">MOVE 01 / 20 <span>YOUR TURN</span></div>
-      <div class="battle-hud player-hud"><div class="hud-title"><strong>${escapeHTML(state.pet)}</strong><span>Lv. ${String(Math.floor(state.totalXP / 100) + 1).padStart(2, "0")}</span></div><div class="hud-species">MOONCAT <i>LUNAR</i></div><div class="hud-health"><b>HP</b><div class="hp-track"><i id="player-bar"></i></div></div><div class="hud-numbers"><b id="player-hp">100</b> / 100</div></div>
+      <div class="battle-hud player-hud"><div class="hud-title"><strong>${escapeHTML(state.pet)}</strong><span>Lv. ${String(Math.floor(state.totalXP / 100) + 1).padStart(2, "0")}</span></div><div class="hud-species">${escapeHTML({ cat: "MOONCAT", corgi: "DOG", rabbit: "RABBIT" }[activePet().kind])} <i>LUNAR</i></div><div class="hud-health"><b>HP</b><div class="hp-track"><i id="player-bar"></i></div></div><div class="hud-numbers"><b id="player-hp">100</b> / 100</div></div>
       <div class="arena-result" id="battle-result" hidden><span id="result-label">VICTORY</span><strong id="result-title"></strong><p id="result-note"></p></div>
     </div>
     <div class="battle-console"><div class="battle-narrative"><span class="eyebrow" id="battle-prompt">WHAT WILL ${escapeHTML(state.pet.toUpperCase())} DO?</span><p id="battle-log" role="status" aria-live="polite">The arena is quiet. Your sidekick looks back at you, ready. Choose your move.</p><span class="battle-caption">TURN-BASED · 20 INDIVIDUAL MOVES</span></div><div class="battle-moves" id="battle-moves">
@@ -523,7 +757,7 @@ function showBattle() {
       <button data-move="guard"><span>${icon("compass")}<strong>Guard</strong></span><small>DEFENSE <em>50% BLOCK · ∞</em></small></button>
       <button data-move="heal"><span>${icon("heart")}<strong>Moon mend</strong></span><small>RESTORE <em id="heal-pp">+35 HP · 1/1 PP</em></small></button>
     </div></div>
-    <div class="battle-footer"><p>Scripted rival · no battle XP. Special and healing moves are UI proposals.</p><div><button class="secondary-button" id="battle-restart">Replay</button><button class="secondary-button" id="battle-leave">Leave arena ↗</button></div></div>
+    <div class="battle-footer"><p>Computer-controlled rival · No battle XP.</p><div><button class="secondary-button" id="battle-restart">Replay</button><button class="secondary-button" id="battle-leave">Leave arena ↗</button></div></div>
   `);
   dialog.classList.add("battle-dialog");
   battle = {
@@ -543,7 +777,8 @@ function showBattle() {
   if (window.PokepetArena) {
     battle.scene = window.PokepetArena.mount(stage, {
       theme: "afterglow",
-      playerKind: "cat",
+      playerKind: activePet().kind,
+      playerColor: activePet().color,
       opponentKind: "corgi",
     });
   } else {
@@ -791,20 +1026,19 @@ dialog.addEventListener("click", (event) => {
   }
 });
 dialog.addEventListener("close", () => {
+  window.PetStudio?.dispose();
   disposeBattle();
   disposePetPreview();
-  dialog.classList.remove("battle-dialog", "community-dialog");
+  dialog.classList.remove(
+    "battle-dialog",
+    "community-dialog",
+    "pet-studio-dialog",
+  );
 });
-window.addEventListener("pagehide", disposePetPreview);
-document.querySelectorAll("[data-filter]").forEach((button) =>
-  button.addEventListener("click", () => {
-    filter = button.dataset.filter;
-    document
-      .querySelectorAll("[data-filter]")
-      .forEach((item) => item.classList.toggle("active", item === button));
-    renderQuests();
-  }),
-);
+window.addEventListener("pagehide", () => {
+  disposePetPreview();
+  window.PetStudio?.dispose();
+});
 document.querySelector("#map-mode").addEventListener("click", (event) => {
   const active = event.currentTarget.getAttribute("aria-pressed") !== "true";
   event.currentTarget.setAttribute("aria-pressed", String(active));
@@ -822,8 +1056,16 @@ document.querySelector("#map-motion").addEventListener("click", (event) => {
   event.currentTarget.textContent = paused ? "Resume" : "Pause";
   neighborhood?.setPaused(paused);
 });
+document.querySelector("#map-rotate").addEventListener("click", (event) => {
+  const rotating = event.currentTarget.getAttribute("aria-pressed") !== "true";
+  event.currentTarget.setAttribute("aria-pressed", String(rotating));
+  neighborhood?.setRotating(rotating);
+  document.querySelector("#map-perspective-hint").textContent = rotating
+    ? "3D VIEW · Drag to rotate"
+    : "3D VIEW · Drag to explore";
+});
 function setZoom(nextZoom) {
-  zoom = Math.max(0.85, Math.min(1.4, nextZoom));
+  zoom = Math.max(0.45, Math.min(1.6, nextZoom));
   if (neighborhood) neighborhood.setZoom(zoom);
   else
     document.querySelector("#world-map>svg").style.transform = `scale(${zoom})`;
@@ -837,7 +1079,7 @@ document
 document.querySelector("#recenter").addEventListener("click", () => {
   setZoom(1);
   neighborhood?.recenter();
-  selectMission("moonwalk");
+  selectMission("moonwalk", false);
   toast("Back to you and your sidekick.");
 });
 renderWorld();
@@ -848,9 +1090,11 @@ try {
       missions,
       selectMission,
       petName: state.pet,
+      selectPlayer: showMapPlayer,
     },
   );
   if (neighborhood) {
+    document.querySelector("#map-rotate").hidden = false;
     document.querySelector("#map-motion").hidden = false;
     document.querySelector("#map-perspective-hint").hidden = false;
   }
@@ -860,6 +1104,4 @@ try {
 }
 refresh();
 if (!persistent)
-  toast(
-    "Browser storage is unavailable. This concept works for the current visit.",
-  );
+  toast("Browser storage is unavailable. Your progress lasts for this visit.");
