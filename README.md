@@ -1,4 +1,7 @@
 # pokepets-go
+
+**[Play the live demo →](https://pokepets-go.vercel.app/)**
+
 A playful web game for pets and their people.
 
 ## Current game demo
