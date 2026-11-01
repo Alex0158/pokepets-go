@@ -1,0 +1,53 @@
+# Same origin avatar integration seam
+
+Alex / Codex — In progress, 1 November 2026. This extends the independently verified avatar lab into new main-app routes and reusable client components. The standalone lab is not evidence of integrated first-use acceptance.
+
+## Ownership and scope
+
+Avatar work owns new `src/server/avatar/`, `app/api/avatars/`, `src/client/avatar-client.ts`, `src/features/avatar/`, avatar tests and this document. Map UI owns `app/game/` and its shell/character wiring. Shared runtime, backend, world, voice and package files stay with their existing owners. Coordinate the callback before wiring UI files.
+
+## Minimal flow
+
+An existing game session reaches optional avatar setup. Owner and pet inputs are independent. Explicitly submit one image → an authenticated same-origin job → poll bounded status → decode and validate an approved asset/manifest → use an animated sprite for that subject. **Skip generation** immediately continues with labelled presets. Pending/failed/canceled/expired work leaves prior usable art and all mission/match state intact. Avatar setup never creates, rewards or changes a player/pet record.
+
+## Local contract
+
+- `GET /api/avatars/config`: authenticated provider availability and photo policy. Disabled or unavailable generation leaves Skip/presets available.
+- `POST /api/avatars/jobs`: `{requestId, subject, mimeType, imageBase64, inputPolicy, consent?}`; same request/payload is idempotent within the temporary job lifetime. No client player ID is accepted.
+- `GET /api/avatars/jobs/:jobId`, `DELETE /api/avatars/jobs/:jobId`: restricted to the player derived from the existing `pokepet_session`.
+- `GET /api/avatars/assets/:assetId/manifest`, `.../image`: same authenticated owner, private no-store output. Raw inputs have no read route.
+- Descriptor: `{assetId,subject,imageUrl,manifestUrl,expiresAt,provenance}`. Client resolves the manifest into an `ApprovedCharacterAsset`; map/UI callback receives `{owner?: ApprovedCharacterAsset,pet?: ApprovedCharacterAsset}`. Only validated output URLs/manifests reach rendering. The private descriptor location is checked before fetching the manifest.
+
+Main session resolution reuses the existing internal `GET /api/session` handler without changing its runtime or trusting browser-supplied identity. Request boundary validation runs before store/database setup. Default local memory state is shared across route bundles through one namespaced global. Opt-in `POKEPET_AVATAR_STORAGE=mongo` uses request-bound generation and shared private job/asset records; see [hosted storage prototype and evidence](avatar-hosted-storage.md). The shared hosted guard still requires its owner's acceptance before activation.
+
+## Photo policy and lifecycle
+
+Alex authorized real owner/pet uploads as product behavior. Each uploader must still explicitly choose an image they are authorized to use and affirm sending it to OpenAI and the temporary storage policy; the server rejects missing consent before provider work. Fixture mode accepts synthetic inputs only. Source images exist only in request/server memory, never the database, disk, logs or read routes. Before external transmission, the provider normalizes orientation/size and strips image metadata. Outputs expire from private access after five minutes: local memory mode loses them on restart, while opt-in Mongo mode shares generated output across processes and removes expired records through TTL later. Its bounded durable budget keeps hashed request claims to prevent duplicate charges. Cross-process cancellation revokes delivery; upstream work may finish until completion/timeout and may be billed. The avatar-owned component discloses the selected storage mode. Provider-side retention follows the API account policy and is not independently audited here. No public sharing or permanent avatar ownership is implied. Our tests use synthetic images only.
+
+Main input limit: PNG/JPEG, 3 MiB, bounded pixel decode and 4,300,000-byte JSON cap. Default local memory mode has two concurrent jobs, bounded retained records and a per-process request allowance of 0–8 (default two). Mongo mode has a shared non-resetting maximum of two provider attempts per database and accepts an operator cap of 0–2; POST awaits terminal generation, with route maxDuration180s and browser submission timeout150s. There is no automatic provider retry. Local provider defaults to OpenAI when the process has the authorized key, otherwise disabled; hosted provider defaults disabled and requires explicit Mongo/OpenAI selection plus the shared guard owner's acceptance. `POKEPET_AVATAR_PROVIDER` chooses `disabled`, `fixture`, or `openai`; OpenAI mode enables consented personal photos unless `POKEPET_AVATAR_PERSONAL_PHOTOS=0`. Keys come from the authorized environment only and never enter client props, responses or artifacts. The independent synthetic lab retains its separate 4 MiB limit.
+
+## Verification before handoff
+
+Focused tests first for main-session auth, owner isolation, no client identity, same-origin checks, policy/consent rejection before provider work, subject separation, duplicate/conflicting jobs, output manifests, expiry and failure fallback. Then actual Next.js same-origin HTTP using two independently authenticated local sessions, fixture provider first and no paid call required. Component and map rendering must be checked in the main UI by its owner before claiming first-use integration. Run unit/type checks; coordinate shared build/restart with the map UI owner.
+
+## Current evidence and handoff
+
+On 1 November, `node src/server/avatar/verify-http.mts` passed against the coordinated Next production build. It created two real main sessions in retained isolated localhost MongoDB `pokepet_local_avatar_main_20261101`, checked unauthenticated access and foreign-origin rejection, submitted a fixture owner job, retried the exact command, read its manifest/image through separate route bundles, rejected the other session and revoked the image after cancellation. The harness explicitly forces `POKEPET_DATABASE_MODE=local`, URI `mongodb://127.0.0.1:27030`, fixture provider and zero paid requests; it starts/stops only its own port 4197 process. No Atlas access, key copy or paid API call was needed.
+
+OpenAI-mode config also passed through that compiled server with `node --env-file=avatar-lab/.env.local src/server/avatar/verify-http.mts --openai-config-only`. It used the previously approved key environment, a real main session and a zero-request allowance; no image provider request was sent. This isolates configuration readiness from paid generation. Following the UI owner's 503 report on port 4194, a fresh synthetic QA session (`Avatar HTTP diagnostic`) returned 200 for both `/api/session` and `/api/avatars/config`, provider `openai`. The failure did not reproduce for that new session; the owner's existing browser session still needs its own confirmation. No generation request was submitted.
+
+Earlier local-seam checkpoint: 22 focused tests passed, including provider metadata removal, consent, explicit fixture filesystem root, opt-in safe diagnostics and expanded battle events. Current hosted-prototype checks and latest full-suite results are recorded in [avatar-hosted-storage.md](avatar-hosted-storage.md). The UI owner reports mounting `AvatarSetup` and `ApprovedCharacterAsset` slots and owns combined browser acceptance. The client rejects invalid descriptor URLs before fetching and resumes a known job after polling/manifest errors rather than creating another charged request. Preserve the existing 4194/4195 processes until their owner coordinates a restart.
+
+Earlier full-root snapshot: 69 passed, 18 opt-in skips, zero failures after those local-seam changes. Test counts are snapshots of the shared working tree, not proof of remaining browser/build gates. The lab's battle adapter recognizes actual `small_attack`/`big_attack` events as attack/hurt, while heal/flee update the authoritative snapshot without fabricated attacks; duplicate/hydration behavior is preserved.
+
+The subsequent coordinated Webpack build passed the isolated OpenAI config check with zero provider requests, but its fixture job reached `failed` instead of `succeeded`. Bundled asset-reference output showed the old fixture `new URL(..., import.meta.url)` paths being transformed. Source now uses an explicit filesystem root (`process.cwd()/avatar-lab`) for the main fixture provider, with a passing focused test. This fix and safe diagnostics postdate that build and still require a coordinated rebuild plus HTTP rerun; the earlier Turbopack fixture pass is prior-build evidence only. The UI owner's existing authenticated browser session continued to report config 503 even after Webpack, so the bundler alone is not an established cause. Categorized diagnostics are ready for its next zero-cost config check.
+
+Subsequent Chrome evidence identified a separate verified browser cause: `this.transport(...)` bound native `fetch` to the AvatarClient instance and threw `Illegal invocation`, while a detached fetch returned200 without a provider call. The client now detaches the function before invocation; a receiver-sensitive regression failed before the change and passed after it. This supersedes a missing-key or bundler-only explanation for that browser failure. Rebuilt Chrome acceptance still belongs to the UI owner.
+
+Assets are session-private and temporary. There is no profile/asset database write, public sharing, durable ownership or real-person/pet likeness acceptance. Original three lab live calls are prior provider evidence; they do not prove this main route made a live request. Real-photo product authorization and the per-upload affirmative consent UI are implemented; our verification uses synthetic data only.
+
+The default process-local asynchronous store is not compatible with independent Vercel function instances. The opt-in Mongo request-bound prototype has passing independent-process HTTP evidence; it is not deployed/hosted acceptance. The hosting owner keeps hosted avatar routes disabled until coordinated build, actual duration/proxy/DB/private-output checks and explicit activation are accepted.
+
+## Optional local diagnostics
+
+`POKEPET_AVATAR_DIAGNOSTICS=1` enables server-only categorized failure logs for runtime setup, internal main-session resolution and HTTP handling. Logs contain an allowlisted code, stage, configured provider/runtime mode and key-presence boolean only. Never log exception messages/stacks, cookies, request bodies, input/output images or key values. The public response stays generic. Keep the flag off by default and use zero-request config checks before any paid generation retry.

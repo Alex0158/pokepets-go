@@ -1,5 +1,5 @@
 import * as THREE from '/vendor/three.module.js';
-import { frameAt, frameUV, advanceTowards } from './core.mjs';
+import { frameAt, frameUV, advanceTowards, validateManifest } from './core.mjs';
 
 function textureFrom(url) {
   return new Promise((resolve, reject) => {
@@ -67,6 +67,7 @@ export async function createMap({ element, manifest, onWalk, onMission, onFrame,
   }
   let target = { x: -1.5, z: 1.1 }, state = 'idle', stateAt = performance.now(), actionUntil = 0;
   let generated = false, sheet = null, facing = 1, disposed = false, loadToken = 0;
+  let petManifest=manifest,ownerSheet=null,ownerManifest=null,ownerLoadToken=0,ownerState='idle',ownerStateAt=performance.now(),guardUntil=0;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const changeState = value => { if (value !== state) { state = value; stateAt = performance.now(); } };
   async function setPetSheet(missing = false) {
@@ -82,15 +83,33 @@ export async function createMap({ element, manifest, onWalk, onMission, onFrame,
     }
     if (disposed || token !== loadToken) { t.dispose(); return; }
     const previous = sheet; sheet = t; generated = isGenerated;
+    petManifest=manifest;
     pet.material.map = t; pet.material.needsUpdate = true; previous?.dispose();
     onAsset(isGenerated ? 'Generated sample sheet' : 'Preset fallback · sample sheet unavailable', isGenerated);
   }
   // Both characters have independent assets. Owner failure cannot block the pet.
   textureFrom('assets/owner-preset.svg').then(t => {
-    if (disposed) { t.dispose(); return; }
+    if (disposed||ownerLoadToken>0) { t.dispose(); return; }
     owner.material.map = t; owner.material.needsUpdate = true;
   }).catch(() => { owner.material.color.setHex(0xe8b64e); });
   await setPetSheet(false);
+  async function setCharacterAsset(subject,nextManifest,provenance={provider:'fixture'}) {
+    if(!['owner','pet'].includes(subject))throw Error('Invalid subject');
+    validateManifest(nextManifest);
+    const token=subject==='owner'?++ownerLoadToken:++loadToken;
+    const t=await textureFrom(nextManifest.sheet);
+    if(t.image.width!==nextManifest.width||t.image.height!==nextManifest.height){t.dispose();throw Error('Asset dimensions mismatch');}
+    if(disposed||token!==(subject==='owner'?ownerLoadToken:loadToken)){t.dispose();return false;}
+    if(subject==='owner') {
+      const prior=owner.material.map;owner.material.map=t;owner.material.needsUpdate=true;
+      ownerSheet=t;ownerManifest=nextManifest;prior?.dispose();
+    } else {
+      const prior=sheet;sheet=t;generated=true;petManifest=nextManifest;
+      pet.material.map=t;pet.material.needsUpdate=true;prior?.dispose();
+      onAsset(provenance.provider==='openai'?'Live OpenAI output · synthetic input':provenance.provider==='openai-cache'?'Cached OpenAI output · synthetic input':'Job asset · fixture, not input-conditioned',true);
+    }
+    return true;
+  }
   function resize() {
     const w = Math.max(element.clientWidth, 1), h = Math.max(element.clientHeight, 1);
     renderer.setSize(w, h, false);
@@ -120,20 +139,28 @@ export async function createMap({ element, manifest, onWalk, onMission, onFrame,
     if (Math.abs(target.x - before.x) > .01) facing = target.x < before.x ? -1 : 1;
     if (now >= actionUntil) changeState(moving ? 'move' : 'idle');
     if (generated && sheet) {
-      const f = frameAt(manifest, state, reducedMotion.matches ? 0 : (now - stateAt) / 1000), uv = frameUV(manifest, f);
+      const f = frameAt(petManifest, state, reducedMotion.matches ? 0 : (now - stateAt) / 1000), uv = frameUV(petManifest, f);
       sheet.repeat.set(uv.repeatX * facing, uv.repeatY);
       sheet.offset.set(uv.offsetX + (facing < 0 ? uv.repeatX : 0), uv.offsetY);
-      onFrame({ state, frame: manifest.animations[state].frames.indexOf(f) + 1, generated, moving, x: after.x, z: after.z });
+      onFrame({ state, frame: petManifest.animations[state].frames.indexOf(f) + 1, generated, moving, x: after.x, z: after.z });
     } else onFrame({ state, frame: 1, generated: false, moving, x: after.x, z: after.z });
     if (!reducedMotion.matches) { mission.rotation.y = now / 1000; owner.position.y = .89 + (moving ? Math.sin(now / 85) * .035 : 0); }
+    if(ownerSheet&&ownerManifest) {
+      const next=moving?'move':'idle';if(next!==ownerState){ownerState=next;ownerStateAt=now;}
+      const f=frameAt(ownerManifest,ownerState,reducedMotion.matches?0:(now-ownerStateAt)/1000),uv=frameUV(ownerManifest,f);
+      ownerSheet.repeat.set(uv.repeatX,uv.repeatY);ownerSheet.offset.set(uv.offsetX,uv.offsetY);
+      element.dataset.ownerFrame=String(ownerManifest.animations[ownerState].frames.indexOf(f)+1);element.dataset.ownerState=ownerState;
+    }
+    pet.material.color.setHex(now<guardUntil?0x86dfe5:0xffffff);
     renderer.render(scene, camera);
   }
   renderer.setAnimationLoop(draw);
   return {
     walk(point) { target = { ...point }; actionUntil = 0; },
     idle() { target = { x: group.position.x, z: group.position.z }; actionUntil = 0; changeState('idle'); },
-    play(action) { if (!['attack', 'hurt'].includes(action)) return; changeState(action); actionUntil = performance.now() + 1000 * manifest.animations[action].frames.length / manifest.animations[action].fps; },
+    play(action) { if(action==='defend'){guardUntil=performance.now()+650;return;} if (!['attack', 'hurt'].includes(action)) return; changeState(action); actionUntil = performance.now() + 1000 * petManifest.animations[action].frames.length / petManifest.animations[action].fps; },
     setPetSheet,
+    setCharacterAsset,
     dispose() {
       disposed = true; renderer.setAnimationLoop(null); observer.disconnect(); renderer.domElement.removeEventListener('click', click);
       const materials = new Set(), geometries = new Set(), textures = new Set();

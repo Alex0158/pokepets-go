@@ -32,7 +32,7 @@ test('nonmembers, wrong turns, stale versions and bad moves do not mutate input'
   rejects(()=>moveMatch(match,'b',command('x',1,'attack','pet-a'),now),'invalid_turn');
   rejects(()=>moveMatch(match,'a',command('x',0),now),'stale_version');
   rejects(()=>moveMatch(match,'a',command('x',1,'attack','pet-a'),now),'invalid_target');
-  rejects(()=>moveMatch(match,'a',{...command('x',1),move:'heal'} as never,now),'invalid_move');
+  rejects(()=>moveMatch(match,'a',{...command('x',1),move:'teleport'} as never,now),'invalid_move');
   assert.deepEqual(match,before);
 });
 

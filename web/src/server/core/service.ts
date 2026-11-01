@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { CommandResult, CreateCommand, JoinCommand, Match, MatchSnapshot, MoveCommand, Player, Receipt } from '../../shared/multiplayer.ts';
 import type { MongoRepository } from '../db/mongo-repository.ts';
-import { alive, fail, joinMatch, moveMatch, waitingMatch } from './battle.ts';
+import { alive, fail, joinMatch, moveMatch, participant, waitingMatch } from './battle.ts';
 const SESSION_MS=7*86400000;
 const sha=(text:string)=>createHash('sha256').update(text).digest('hex');
 export const snapshot=(match:Match):MatchSnapshot=>({matchId:match._id,status:match.status,participants:match.participants,turnPlayerId:match.turnPlayerId,version:match.version,moveCount:match.moveCount,result:match.result,winnerPlayerId:match.winnerPlayerId,...(match.lastEvent?{lastEvent:match.lastEvent}:{}),createdAt:match.createdAt,updatedAt:match.updatedAt,expiresAt:match.expiresAt});
@@ -75,19 +75,35 @@ export class BackboneService {
     if(!match) fail('match_not_found',404);
     if(match.invitedPlayerId!==actor._id) fail('forbidden',403);
     const prior=this.retry(match,actor._id,command.commandId,hash,now);if(prior)return prior;
-    const pet=await this.ownedPet(actor._id,command.petId);
-    const next=joinMatch(match,actor._id,pet,command.expectedVersion,now);
-    const receipt:Receipt={commandId:command.commandId,actorPlayerId:actor._id,digest:hash,kind:'join',version:next.version};
-    next.acceptedCommands=[...match.acceptedCommands,receipt];
-    if(await this.repo.compareAndSwap(match,next,actor._id,command.commandId,'join',now))return {snapshot:snapshot(next),receipt,duplicate:false};
-    const current=await this.repo.match(matchId);if(!current)fail('match_not_found',404);
-    const retried=this.retry(current,actor._id,command.commandId,hash,this.clock());if(retried)return retried;
-    joinMatch(current,actor._id,pet,command.expectedVersion,this.clock());
-    return fail('stale_version');
+    return this.repo.transaction(async session=>{
+      const startedAt=this.clock();
+      if(actor.sessionExpiresAt<=startedAt)fail('unauthenticated',401);
+      const current=await this.repo.match(matchId,session);if(!current)fail('match_not_found',404);
+      if(current.invitedPlayerId!==actor._id)fail('forbidden',403);
+      const retried=this.retry(current,actor._id,command.commandId,hash,startedAt);if(retried)return retried;
+      const pet=await this.repo.pet(command.petId,session);
+      if(!pet||pet.ownerId!==actor._id)fail('pet_not_owned',403);
+      // Validate membership/state/version before touching progression documents.
+      const next=joinMatch(current,actor._id,pet,command.expectedVersion,startedAt);
+      const creatorPet=await this.repo.pet(current.participants[0].petId,session);
+      if(!creatorPet||creatorPet.ownerId!==current.creatorId)fail('pet_not_owned',403);
+      const pinned=new Map<string,Awaited<ReturnType<MongoRepository['pinProgression']>>>();
+      for(const owned of [creatorPet,pet].sort((a,b)=>a._id.localeCompare(b._id))) {
+        pinned.set(owned._id,await this.repo.pinProgression(owned,session,startedAt));
+      }
+      next.participants=[creatorPet,pet].map(owned=>{
+        const progress=pinned.get(owned._id)!;
+        return {...participant(owned.ownerId,{...owned,baseStats:progress.stats}),progressionVersion:progress.version};
+      });
+      const receipt:Receipt={commandId:command.commandId,actorPlayerId:actor._id,digest:hash,kind:'join',version:next.version};
+      next.acceptedCommands=[...current.acceptedCommands,receipt];
+      if(!await this.repo.compareAndSwap(current,next,actor._id,command.commandId,'join',startedAt,session))fail('stale_version');
+      return {snapshot:snapshot(next),receipt,duplicate:false};
+    });
   }
   async move(token:string|undefined,matchId:string,command:MoveCommand):Promise<CommandResult> {
     const actor=await this.actor(token);id(matchId);uuid(command.commandId);version(command.expectedVersion);id(command.targetPetId);
-    if(command.move!=='attack'&&command.move!=='defend')fail('invalid_move',400);
+    if(!['attack','small_attack','big_attack','defend','heal','flee'].includes(command.move))fail('invalid_move',400);
     const now=this.clock(),hash=digest('move',[command.expectedVersion,command.move,command.targetPetId]);
     const match=await this.repo.match(matchId);if(!match)fail('match_not_found',404);
     if(!match.participants.some(p=>p.playerId===actor._id))fail('forbidden',403);

@@ -2,6 +2,8 @@
 
 Alex / Codex scoped review and implementation, 1 November 2026. Source: [schema review decisions](https://chatgpt.com/space/page_da74cc1494e88191995af37ede1d5082), [architecture](https://chatgpt.com/space/page_98ac47d66d4c8191b83289c286f522bc) and [checkpoints](https://chatgpt.com/space/page_6ae740255a908191b675c589a93bc207). This is a local database/API slice, not Atlas or a completed game UI.
 
+**Current integration update:** join/activation now pins both players' saved progression stats in one transaction. Use the dedicated local replica set at `mongodb://127.0.0.1:27030` for battle activation and full tests. Existing active matches stay immutable. Standalone `27028` remains preserved and returns `transaction_support_required` for new activation. See [upgrade ordering, version fences and current evidence](upgrade-battle-integration.md); the original checkpoint results below describe the earlier preset-only slice.
+
 ## Review and decisions before implementation
 
 - The match aggregate and versioned single-document CAS are appropriate. Identity, authorized joining, create/join idempotency and exact command retention were underspecified. These are required for two usable sessions and ambiguous network recovery.
@@ -34,9 +36,9 @@ Poll the snapshot endpoint; ignore responses older than the displayed version. A
 
 ## Run and verify
 
-Use only a dedicated local MongoDB, never Atlas. Set `POKEPET_LOCAL_MONGODB_URI=mongodb://127.0.0.1:27028` and `POKEPET_LOCAL_DATABASE=pokepet_local_demo` before running `npm run dev -- --hostname 127.0.0.1 --port 3018` in `web/`. Missing/invalid configuration makes the new API unavailable; the home and health routes remain independent.
+Use only a dedicated local MongoDB, never Atlas. Set `POKEPET_LOCAL_MONGODB_URI=mongodb://127.0.0.1:27030` and `POKEPET_LOCAL_DATABASE=pokepet_local_demo` before running `npm run dev -- --hostname 127.0.0.1 --port 3018` in `web/`. Missing/invalid configuration makes the new API unavailable; the home and health routes remain independent.
 
-From the repo root: `node --test web/test/rules.test.ts`; `POKEPET_TEST_MONGODB_URI=mongodb://127.0.0.1:27028 node --test web/test/mongo.test.ts`. Integration tests retain a uniquely named local test database and never drop other data. Run `npm test`, `npm run check`, then `npm run typecheck` and `npm run build` in `web/`. Verification results and remaining gates are recorded below after execution.
+From the repo root: `node --test web/test/rules.test.ts`; `POKEPET_TEST_MONGODB_URI=mongodb://127.0.0.1:27030 POKEPET_STANDALONE_TEST_MONGODB_URI=mongodb://127.0.0.1:27028 npm test`. Integration tests retain a uniquely named local test database and never drop other data. Run `npm test`, `npm run check`, then `npm run typecheck` and `npm run build` in `web/`. Verification results and remaining gates are recorded below after execution.
 
 ## Verified result
 

@@ -1,6 +1,6 @@
-# Local verification
+# Initial local verification
 
-1 November 2026, Alex / Codex. Local proof only; no push or deployment.
+Earlier local fixture checkpoint, 1 November 2026, Alex / Codex. Superseded for live image generation by LIVE-RESULTS.md; retained as the initial visual proof evidence. No push or deployment.
 
 ## Automated evidence
 

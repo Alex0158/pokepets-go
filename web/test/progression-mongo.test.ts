@@ -1,0 +1,46 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { MongoClient } from 'mongodb';
+import { MongoRepository } from '../src/server/db/mongo-repository.ts';
+import { BackboneService } from '../src/server/core/service.ts';
+import { DomainError } from '../src/server/core/battle.ts';
+import { ProgressionService } from '../src/server/progression/service.ts';
+import { createLocalApi } from '../src/server/core/http.ts';
+
+const uri=process.env.POKEPET_TEST_MONGODB_URI;
+const rejectCode=(promise:Promise<unknown>,code:string)=>assert.rejects(promise,e=>e instanceof DomainError&&e.code===code);
+
+test('real MongoDB progression preserves ownership, retry, conflict and concurrent reward invariants',{skip:!uri},async t=>{
+  if(!/^mongodb:\/\/127\.0\.0\.1:\d+$/.test(uri!))throw Error('Tests require explicit isolated localhost MongoDB');
+  const name=`pokepet_local_test_${Date.now()}_${randomUUID().slice(0,8)}`;
+  const client=new MongoClient(uri!,{serverSelectionTimeoutMS:1500});await client.connect();t.after(()=>client.close());
+  const db=client.db(name),repo=new MongoRepository(db);await repo.initialize();
+  const backbone=new BackboneService(repo),service=new ProgressionService(db,backbone);
+  const a=await backbone.bootstrap(undefined,'A'),b=await backbone.bootstrap(undefined,'B');
+  await rejectCode(service.get(undefined),'unauthenticated');
+  const id=randomUUID(),mission={kind:'mission' as const,missionId:'sniff-safari',confirmed:true};
+  const [first,retry]=await Promise.all([service.command(a.token!,id,mission),service.command(a.token!,id,mission)]);
+  assert.deepEqual(first.receipt,retry.receipt);assert.equal((await service.get(a.token!)).points,20);
+  await rejectCode(service.command(a.token!,id,{...mission,missionId:'quiet-company'}),'command_conflict');
+  const next={kind:'mission' as const,missionId:'quiet-company',confirmed:true};
+  const raced=await Promise.allSettled([service.command(a.token!,randomUUID(),next),service.command(a.token!,randomUUID(),next)]);
+  assert.equal(raced.filter(r=>r.status==='fulfilled').length,1);assert.equal((await service.get(a.token!)).points,30);
+  assert.equal((await service.get(b.token!)).points,0);
+  const upgrade=await service.command(a.token!,randomUUID(),{kind:'upgrade',stat:'attack'});
+  assert.equal(upgrade.snapshot.points,25);assert.equal(upgrade.snapshot.stats.attack,11);
+  assert.equal((await repo.pet(a.pet._id))!.baseStats.attack,10);
+  const api=createLocalApi(backbone);
+  const request=(method:string,path:string,body?:unknown,token?:string)=>new Request(`http://127.0.0.1:3018${path}`,{method,headers:{origin:'http://127.0.0.1:3018','content-type':'application/json',...(token?{cookie:`pokepet_session=${token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
+  const noSession=await api(request('GET','/api/progression'));assert.equal(noSession.status,401);
+  const get=await api(request('GET','/api/progression',undefined,a.token!));assert.equal(get.status,200);assert.equal((await get.json()).points,25);
+  const action={commandId:randomUUID(),missionId:'living-room-play',confirmed:true};
+  const post=await api(request('POST','/api/progression/mission',action,a.token!));assert.equal(post.status,200);assert.equal((await post.json()).snapshot.points,40);
+  const duplicate=await api(request('POST','/api/progression/mission',action,a.token!));assert.equal((await duplicate.json()).duplicate,true);
+  const bad=await api(request('POST','/api/progression/mission',{...action,points:1000},a.token!));assert.equal(bad.status,400);
+  const upgradeApi=await api(request('POST','/api/progression/upgrade',{commandId:randomUUID(),stat:'speed'},a.token!));assert.equal(upgradeApi.status,200);
+  const reopened=new ProgressionService(client.db(name),new BackboneService(new MongoRepository(client.db(name))));
+  assert.equal((await reopened.get(a.token!)).points,35);
+  await client.close();await assert.rejects(reopened.get(a.token!));
+  console.log(`Real progression test retained isolated database: ${name}`);
+});

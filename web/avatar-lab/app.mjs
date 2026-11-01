@@ -1,4 +1,5 @@
 import { validateManifest, acceptBattleEvent } from './core.mjs';
+import { setupUploads } from './uploads.mjs';
 
 const $ = id => document.getElementById(id);
 let map = null, walkIndex = 0, eventNumber = 1, battleTimer, cursor = null;
@@ -19,7 +20,7 @@ function assetStatus(text, generated) {
   document.querySelector('.pet-portrait').classList.toggle('preset', !generated);
   $('map').dataset.asset = generated ? 'generated-sample' : 'preset-fallback';
   if (!generated) $('notice').textContent = 'Sample sheet unavailable. Preset pet remains usable; mission selection and movement are preserved.';
-  else $('notice').textContent = 'Invented characters and local fixture events. No live uploads, multiplayer or runtime AI calls.';
+  else $('notice').textContent = text.startsWith('Live OpenAI')?'Live OpenAI asset from a synthetic input. Battle events remain local fixtures.':text.startsWith('Cached OpenAI')?'Cached output from the recorded live API test; no new generation request. Battle events remain local fixtures.':'Invented sample characters and local fixture events; no personal photos or multiplayer.';
 }
 $('walk').addEventListener('click', () => walk());
 $('idle').addEventListener('click', () => { clearTimeout(battleTimer); map?.idle(); $('motion').textContent = 'Idle'; });
@@ -52,6 +53,7 @@ async function start() {
       },
     });
     $('renderer-status').textContent = 'Three.js · local';
+    $('load-cached').disabled=false;
   } catch {
     $('renderer-status').textContent = 'Static fallback';
     $('fallback').hidden = false;
@@ -63,5 +65,6 @@ async function start() {
     $('notice').textContent = '3D map unavailable. Separate preset characters and sample mission controls remain usable. No live data is affected.';
   }
 }
-window.addEventListener('pagehide', () => { clearTimeout(battleTimer); map?.dispose(); });
+setupUploads(()=>map);
+window.addEventListener('pagehide', event => { clearTimeout(battleTimer); if(!event.persisted)map?.dispose(); });
 start();

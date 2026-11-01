@@ -1,9 +1,30 @@
 # pokepets-go
 A playful web game for pets and their people.
 
-## Work in progress
+## Current game demo
 
-This branch contains separate local prototypes: the single-player root demo described below, a Next.js web skeleton with a local-only multiplayer API in `web/`, an animated 2.5D visual proof in `web/avatar-lab/`, and a mission prototype in `web/mission-lab/`. These are not yet wired together. Atlas deployment, live photo generation, shared mission rewards, and a two-browser game flow remain unverified. See each directory's documentation for setup and limits.
+The current integrated Next.js game is in `web/`. A guest creates a profile, sees other registered players on a fictional map, completes owner-reported activities for points, upgrades their pet and chooses a Sneak attack or a face-to-face challenge. Auto mode selects a move through OpenAI Decisions when available, with a labelled fallback. Owner and pet image generation use separate assets; a preset / Skip path is available.
+
+The current local build has been exercised with two browser sessions and an isolated MongoDB replica set. Live OpenAI voice, Decisions and synthetic-image tests have passed locally; the game does not verify real-world care. Atlas app service writes and transactions have also passed in a separate test database. Hosting, real-photo lifecycle, and real-device mobile acceptance remain separate verification gates. A Vercel project exists, but no deployed version is claimed here. Hosted voice and avatar endpoints remain disabled until cross-instance and cost controls are verified.
+
+### Run the integrated game locally
+
+Requires Node.js with TypeScript support and an isolated MongoDB replica set; see [the integration handoff](web/docs/map-gameplay-integration.md) for the tested setup. From `web/`:
+
+```sh
+npm ci
+POKEPET_RUNTIME_MODE=local POKEPET_DATABASE_MODE=local POKEPET_LOCAL_MONGODB_URI=mongodb://127.0.0.1:27030 POKEPET_LOCAL_DATABASE=pokepet_local_demo npm run dev -- --hostname 127.0.0.1
+```
+
+Open `http://127.0.0.1:3000`. Optional AI calls require a server-side `OPENAI_API_KEY`; never commit credentials or photos. See [hosted readiness](web/docs/hosted-runtime-boundary.md) for the remaining deployment boundaries.
+
+### Codex and credits
+
+Codex helped develop and test the modular game, integrate the shared MongoDB battle flow, and build AI-assisted avatar and voice prototypes. The map illustration and portions of its wording adapt the teammate's original Afterglow concept preserved in `mock/` on the repository's `main` branch. Team-member names and contact details should be added to the submission by the team.
+
+## Earlier standalone prototype
+
+The following section documents the earlier root-level solo prototype, not the integrated `web/` game. Its feature and storage statements apply only to that prototype.
 
 ## Run locally
 
@@ -47,4 +68,4 @@ Progress stays in localStorage on this browser and origin. It is not an account,
 - Pet and activity symbols use native system emoji; no image or font files are redistributed. Artwork is preset, not generated from a pet photo.
 - The broader Space concept illustrations were not copied into the application.
 
-See [local verification and handoff](docs/handoff.md). This branch has not been deployed or submitted.
+See [local verification and handoff](docs/handoff.md). This local work has not been pushed, deployed or submitted.

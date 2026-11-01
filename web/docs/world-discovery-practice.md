@@ -1,0 +1,5 @@
+# World discovery and practice battle
+
+Scope: local-only backend, 1 November 2026. On Alex's direction, all registered players appear automatically to other registered players. Positions are deterministic fictional coordinates, never GPS; the list does not claim online status. Waiting invitations are visible only to the invitee. Separate practice battles snapshot the chosen pet and use an automatic deterministic opponent; no opponent session, opponent mutation, reward or notification is involved. This is an initial implementation choice, not a claim of an AI-model opponent.
+
+Core gates: own session required; nonexistent targets cannot start practice; invitee sees pending invitation; participant and expiry checks protect commands; commands are idempotent, versioned and atomically applied; player and bot moves preserve rules and state; DB failures do not create client-side success. Implement focused tests first and validate with an isolated localhost MongoDB and actual Next routes where feasible. No Atlas, deployment or avatar-pipeline changes.

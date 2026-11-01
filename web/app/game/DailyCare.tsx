@@ -1,0 +1,10 @@
+'use client';
+
+import { useState } from 'react';
+import type { ProgressSnapshot } from '../../src/client/game-client.ts';
+
+const care=[{id:'daily-feed',title:'A meal together',icon:'◒',description:'Feed your pet their usual meal and share a little moment together.',confirmation:'I confirm I fed my pet today.'},{id:'daily-play',title:'Five minutes of play',icon:'ϟ',description:'Enjoy five minutes with a favourite toy, at your pet’s pace.',confirmation:'I confirm we played together for five minutes today.'}];
+export function DailyCare({progress,blocked,mutate}:{progress:ProgressSnapshot|null;blocked:boolean;mutate:(path:string,payload:Record<string,unknown>)=>Promise<boolean>}){
+  const [confirmed,setConfirmed]=useState<Record<string,boolean>>({});
+  return <section className="daily-care" aria-labelledby="daily-title"><div className="section-title"><p className="eyebrow">ORDINARY MOMENTS, EVERY DAY</p><h2 id="daily-title">Today with your pet</h2><p className="muted">Owner-reported activities · +15 points each, once per Europe/London day{progress?.dailyMissions?` · ${progress.dailyMissions.date}`:''}</p></div><div className="daily-grid">{care.map(item=>{const done=progress?.dailyMissions?.completedMissionIds.includes(item.id);return <article className="daily-card" key={item.id}><span className="quest-icon">{item.icon}</span><h3>{item.title}</h3><p>{item.description}</p>{done?<p className="success">Completed today ✓ · Reward saved</p>:<><label className="confirmation"><input type="checkbox" checked={confirmed[item.id]??false} onChange={e=>setConfirmed({...confirmed,[item.id]:e.target.checked})}/>{item.confirmation}</label><button className="primary" disabled={blocked||!confirmed[item.id]} onClick={()=>mutate('/api/progression/mission',{missionId:item.id,confirmed:true})}>Confirm {item.id==='daily-feed'?'meal':'play'} · +15 points</button></>}</article>;})}</div><p className="muted">Your confirmation is the record. The game does not automatically verify feeding, activity or time. Points can buy Attack or Health upgrades in My pet.</p></section>;
+}

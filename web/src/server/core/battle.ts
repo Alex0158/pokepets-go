@@ -8,7 +8,7 @@ export class DomainError extends Error {
 }
 export function fail(code:string,status=409): never { throw new DomainError(code,status); }
 export function alive(match:Match,now:Date) { if(match.expiresAt<=now) fail('match_expired',410); }
-function participant(actor:string,pet:Pet): Participant {
+export function participant(actor:string,pet:Pet): Participant {
   if(pet.ownerId!==actor) fail('pet_not_owned',403);
   const stats=pet.baseStats;
   for(const [key,value] of Object.entries(stats)) if(!Number.isSafeInteger(value)||value<1||value>100) fail(`invalid_stat_${key}`,400);
@@ -32,21 +32,31 @@ export function moveMatch(match:Match,actor:string,command:MoveCommand,now:Date)
   if(command.expectedVersion!==match.version) fail('stale_version');
   if(match.status!=='active') fail('match_finished');
   if(match.turnPlayerId!==actor) fail('invalid_turn');
-  if(command.move!=='attack'&&command.move!=='defend') fail('invalid_move',400);
-  const targetIndex=command.move==='attack'?1-actorIndex:actorIndex;
+  if(!['attack','small_attack','big_attack','defend','heal','flee'].includes(command.move)) fail('invalid_move',400);
+  const isAttack=['attack','small_attack','big_attack'].includes(command.move);
+  const targetIndex=isAttack?1-actorIndex:actorIndex;
   if(command.targetPetId!==match.participants[targetIndex].petId) fail('invalid_target',400);
   const participants=match.participants.map(p=>({...p,stats:{...p.stats}}));
   const self=participants[actorIndex],other=participants[1-actorIndex];
   if(command.move==='defend') self.guarding=true;
-  else {
-    const damage=Math.max(1,self.stats.attack-other.stats.defence);
+  else if(command.move==='heal') {
+    if((self.healsUsed??0)>=1||self.hp>=self.stats.health)fail('heal_unavailable');
+    self.hp=Math.min(self.stats.health,self.hp+10);self.healsUsed=(self.healsUsed??0)+1;
+  } else if(command.move==='big_attack') {
+    if((self.bigAttacksUsed??0)>=3)fail('big_attack_unavailable');
+    self.bigAttacksUsed=(self.bigAttacksUsed??0)+1;
+  }
+  if(isAttack) {
+    const power=command.move==='big_attack'?Math.floor(self.stats.attack*1.5):self.stats.attack;
+    const damage=Math.max(1,power-other.stats.defence);
     other.hp=Math.max(0,other.hp-(other.guarding?Math.max(1,Math.floor(damage/2)):damage));
     other.guarding=false;
   }
   const moveCount=match.moveCount+1;
   const knockout=other.hp===0;
-  const finished=knockout||moveCount>=MAX_MOVES;
+  const escaped=command.move==='flee';
+  const finished=escaped||knockout||moveCount>=MAX_MOVES;
   const version=match.version+1;
   const event={id:`${match._id}:${command.commandId}`,matchId:match._id,commandId:command.commandId,version,actorPlayerId:actor,move:command.move,targetPetId:command.targetPetId,resultingHp:participants[targetIndex].hp};
-  return {...match,participants,version,moveCount,status:finished?'finished':'active',turnPlayerId:finished?null:other.playerId,result:knockout?'knockout':finished?'draw':null,winnerPlayerId:knockout?actor:null,lastEvent:event,updatedAt:now};
+  return {...match,participants,version,moveCount,status:finished?'finished':'active',turnPlayerId:finished?null:other.playerId,result:escaped?'escape':knockout?'knockout':finished?'draw':null,winnerPlayerId:knockout?actor:null,lastEvent:event,updatedAt:now};
 }

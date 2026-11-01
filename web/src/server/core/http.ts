@@ -1,19 +1,15 @@
 import type { BackboneService } from './service.ts';
 import type { CreateCommand, JoinCommand, MoveCommand } from '../../shared/multiplayer.ts';
 import { DomainError, fail } from './battle.ts';
+import { ProgressionService } from '../progression/service.ts';
+import { WorldService } from '../world/service.ts';
+import { validateRequestBoundary } from './request-boundary.ts';
+import { AutoService } from '../auto/service.ts';
+import { createDecisionProvider } from '../auto/decisions.ts';
 export const SESSION_COOKIE='pokepet_session';
 const response=(value:unknown,status=200,headers:Record<string,string>={})=>Response.json(value,{status,headers:{'Cache-Control':'no-store',...headers}});
 export function localRequest(request:Request) {
-  const url=new URL(request.url);
-  if(!['127.0.0.1','localhost','[::1]'].includes(url.hostname))fail('local_only',403);
-  // Next constructs Request.url using its internal hostname. Validate the actual
-  // Host independently and never trust forwarded-host headers for this local API.
-  const host=request.headers.get('host')??url.host;
-  if(!/^(127\.0\.0\.1|localhost|\[::1\])(?::\d+)?$/.test(host))fail('local_only',403);
-  if(request.method!=='GET') {
-    if(request.headers.get('origin')!==`${url.protocol}//${host}`)fail('origin_rejected',403);
-    if(request.headers.get('content-type')?.split(';')[0].trim()!=='application/json')fail('json_required',415);
-  }
+  validateRequestBoundary(request,{POKEPET_RUNTIME_MODE:process.env.POKEPET_RUNTIME_MODE,POKEPET_HOSTED_ORIGIN:process.env.POKEPET_HOSTED_ORIGIN,POKEPET_HOSTED_AVATAR_ENABLED:process.env.POKEPET_HOSTED_AVATAR_ENABLED,POKEPET_HOSTED_VOICE_ENABLED:process.env.POKEPET_HOSTED_VOICE_ENABLED});
 }
 function sessionToken(request:Request) {
   const tokens=(request.headers.get('cookie')??'').split(';').map(s=>s.trim()).filter(s=>s.startsWith(`${SESSION_COOKIE}=`));
@@ -43,13 +39,35 @@ export function createLocalApi(service:BackboneService) {
     try {
       localRequest(request);
       const token=sessionToken(request),path=new URL(request.url).pathname;
+      const world=new WorldService(service.repo.db,service);
+      if(path==='/api/auto-move'&&request.method==='POST'){
+        const input=await body(request,['commandId','mode','matchId','expectedVersion']);
+        const provider=process.env.OPENAI_API_KEY?createDecisionProvider(process.env.OPENAI_API_KEY):undefined;
+        return response(await new AutoService(service.repo.db,service,world,provider).move(token,input as {commandId:string;mode:'face'|'practice';matchId:string;expectedVersion:number}));
+      }
+      if(path==='/api/world'&&request.method==='GET')return response(await world.world(token));
+      if(path==='/api/practice'&&request.method==='POST')return response(await world.practiceCreate(token,await body(request,['commandId','opponentPlayerId']) as {commandId:string;opponentPlayerId:string}));
+      const practice=/^\/api\/practice\/([a-zA-Z0-9-]{1,80})(?:\/(moves))?$/.exec(path);
+      if(practice){
+        if(!practice[2]&&request.method==='GET')return response(await world.practiceRead(token,practice[1]));
+        if(practice[2]==='moves'&&request.method==='POST')return response(await world.practiceMove(token,practice[1],await body(request,['commandId','expectedVersion','move','targetPetId']) as MoveCommand));
+      }
+      if(path==='/api/progression'&&request.method==='GET')return response(await new ProgressionService(service.repo.db,service,service.clock).get(token));
+      if(path==='/api/progression/mission'&&request.method==='POST') {
+        const input=await body(request,['commandId','missionId','confirmed']);
+        return response(await new ProgressionService(service.repo.db,service,service.clock).command(token,input.commandId,{kind:'mission',missionId:input.missionId,confirmed:input.confirmed}));
+      }
+      if(path==='/api/progression/upgrade'&&request.method==='POST') {
+        const input=await body(request,['commandId','stat']);
+        return response(await new ProgressionService(service.repo.db,service,service.clock).command(token,input.commandId,{kind:'upgrade',stat:input.stat}));
+      }
       if(path==='/api/session') {
         if(request.method==='GET')return response(await service.profile(token));
         if(request.method==='POST') {
           const input=await body(request,['displayName']);
           const result=await service.bootstrap(token,input.displayName);
           const {token:issued,...profile}=result;
-          const cookie:Record<string,string>=issued?{ 'Set-Cookie':`${SESSION_COOKIE}=${issued}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800${new URL(request.url).protocol==='https:'?'; Secure':''}` }:{};
+          const cookie:Record<string,string>=issued?{ 'Set-Cookie':`${SESSION_COOKIE}=${issued}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800${process.env.POKEPET_RUNTIME_MODE==='hosted'||new URL(request.url).protocol==='https:'?'; Secure':''}` }:{};
           return response(profile,200,cookie);
         }
       }
