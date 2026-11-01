@@ -1,0 +1,19 @@
+export type Stats = { health: number; attack: number; defence: number; speed: number };
+export type Pet = { _id: string; ownerId: string; name: string; baseStats: Stats; createdAt: Date; updatedAt: Date };
+export type Player = { _id: string; displayName: string; sessionHash: string; sessionExpiresAt: Date; createdAt: Date; updatedAt: Date };
+export type Participant = { playerId: string; petId: string; hp: number; guarding: boolean; stats: Stats };
+export type MoveCommand = { commandId: string; expectedVersion: number; move: 'attack' | 'defend'; targetPetId: string };
+export type CreateCommand = { commandId: string; petId: string; opponentPlayerId: string };
+export type JoinCommand = { commandId: string; expectedVersion: number; petId: string };
+export type MatchEvent = { id: string; matchId: string; commandId: string; version: number; actorPlayerId: string; move: 'attack' | 'defend'; targetPetId: string; resultingHp: number };
+export type Receipt = { commandId: string; actorPlayerId: string; digest: string; kind: 'create' | 'join' | 'move'; version: number; event?: MatchEvent };
+export type Match = {
+  _id: string; creatorId: string; createCommandId: string; invitedPlayerId: string;
+  status: 'waiting' | 'active' | 'finished'; participants: Participant[];
+  turnPlayerId: string | null; version: number; moveCount: number;
+  result: 'knockout' | 'draw' | null; winnerPlayerId: string | null;
+  acceptedCommands: Receipt[]; lastEvent?: MatchEvent;
+  createdAt: Date; updatedAt: Date; expiresAt: Date;
+};
+export type MatchSnapshot = Omit<Match, '_id' | 'acceptedCommands' | 'creatorId' | 'createCommandId' | 'invitedPlayerId'> & { matchId: string };
+export type CommandResult = { snapshot: MatchSnapshot; receipt: Receipt; duplicate: boolean };
