@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#11131c" />
+    <meta
+      name="description"
+      content="Afterglow — an interactive Pokepet Go nighttime adventure concept."
+    />
+    <title>Pokepet Go — Afterglow</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="community.css" />
+  </head>
+  <body>
+    <svg
+      class="svg-library"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <symbol id="i-compass" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="m16 8-2.5 5.5L8 16l2.5-5.5Z" />
+        </symbol>
+        <symbol id="i-paw" viewBox="0 0 24 24">
+          <path d="M7 16c0-3 3-6 5-6s5 3 5 6c0 4-3 2-5 2s-5 2-5-2Z" />
+          <ellipse cx="5" cy="10" rx="2" ry="3" />
+          <ellipse cx="10" cy="5" rx="2" ry="3" />
+          <ellipse cx="16" cy="6" rx="2" ry="3" />
+          <ellipse cx="20" cy="12" rx="2" ry="3" />
+        </symbol>
+        <symbol id="i-book" viewBox="0 0 24 24">
+          <path
+            d="M12 6c-3-3-7-3-10-2v15c4-1 7-1 10 2 3-3 6-3 10-2V4c-3-1-7-1-10 2Zm0 0v15"
+          />
+        </symbol>
+        <symbol id="i-people" viewBox="0 0 24 24">
+          <circle cx="9" cy="8" r="3" />
+          <path
+            d="M2 21v-3a7 7 0 0 1 14 0v3M17 4a3 3 0 0 1 0 6m2 4a6 6 0 0 1 3 5v2"
+          />
+        </symbol>
+        <symbol id="i-swords" viewBox="0 0 24 24">
+          <path
+            d="m3 3 4 1 12 13-3 3L4 7Zm18 0-4 1-4 5m-4 4-5 4 3 3m7-1 6-6M4 13l6 6m6 1 3 3M7 20l-3 3"
+          />
+        </symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24">
+          <path d="M4 12h15m-6-6 6 6-6 6" />
+        </symbol>
+        <symbol id="i-star" viewBox="0 0 24 24">
+          <path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" />
+        </symbol>
+        <symbol id="i-pin" viewBox="0 0 24 24">
+          <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" />
+          <circle cx="12" cy="10" r="3" />
+        </symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 6v6l4 2" />
+        </symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24">
+          <path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z" />
+        </symbol>
+        <symbol id="i-close" viewBox="0 0 24 24">
+          <path d="m6 6 12 12M6 18 18 6" />
+        </symbol>
+        <symbol id="i-bolt" viewBox="0 0 24 24">
+          <path d="m14 2-10 12h7l-1 8 10-12h-7Z" />
+        </symbol>
+        <symbol id="i-heart" viewBox="0 0 24 24">
+          <path d="M12 21 3 12C-3 4 7-1 12 6c5-7 15-2 9 6Z" />
+        </symbol>
+        <symbol id="pet-character" viewBox="0 0 200 200">
+          <ellipse
+            cx="101"
+            cy="180"
+            rx="57"
+            ry="10"
+            fill="#0a1021"
+            opacity=".3"
+          />
+          <path
+            d="M144 137c37-18 39 13 18 22-11 4-14-1-17-6"
+            fill="none"
+            stroke="#a99eea"
+            stroke-width="15"
+            stroke-linecap="round"
+          />
+          <path
+            d="M59 134c-9 19-6 39 7 39l16-3h34l15 3c16 0 15-28 4-40"
+            fill="#b7acf7"
+          />
+          <path
+            d="m53 72-4-48 39 31M119 53l35-32-5 53"
+            fill="#b7acf7"
+            stroke="#d2c9ff"
+            stroke-width="3"
+          />
+          <path d="m57 39 7 29 16-8M145 38l-19 22 15 9" fill="#f0a6ca" />
+          <path
+            d="M48 83c1-41 105-46 107 1l1 26c0 42-108 42-108 0Z"
+            fill="#c6baff"
+          />
+          <path
+            d="M85 60c5 11 11 10 13 1m7-1c3 10 8 9 12-2"
+            fill="none"
+            stroke="#9985d3"
+            stroke-width="4"
+            stroke-linecap="round"
+          />
+          <ellipse cx="76" cy="98" rx="7" ry="10" fill="#20233b" />
+          <ellipse cx="127" cy="98" rx="7" ry="10" fill="#20233b" />
+          <circle cx="78" cy="95" r="2" fill="white" />
+          <circle cx="129" cy="95" r="2" fill="white" />
+          <ellipse cx="65" cy="113" rx="10" ry="5" fill="#e4a1cd" />
+          <ellipse cx="139" cy="113" rx="10" ry="5" fill="#e4a1cd" />
+          <path
+            d="m96 111 6 5 6-5Zm6 5v6m-8-2q8 7 16 0"
+            fill="none"
+            stroke="#5b466d"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          />
+          <path d="M60 131q44 17 82-1l-3 17q-38 14-75-2Z" fill="#d6fa72" />
+          <path d="m118 142 25 20-23 5-11-22" fill="#c3e462" />
+          <path
+            d="m72 162 1 10m56-10-1 10"
+            stroke="#8d80c1"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+        </symbol>
+        <symbol id="owner-character" viewBox="0 0 100 180">
+          <ellipse
+            cx="50"
+            cy="168"
+            rx="27"
+            ry="7"
+            fill="#091026"
+            opacity=".4"
+          />
+          <path d="m35 119-2 42h14l5-38 6 38h14l-7-44" fill="#394252" />
+          <path d="M31 158h17v12H26q-3-9 5-12m27 0h15l7 12H58" fill="#e4e7db" />
+          <path d="M28 76q22-11 43 0l6 49H22Z" fill="#dcfa80" />
+          <path
+            d="m31 82-15 31m52-31 15 28"
+            fill="none"
+            stroke="#bddd65"
+            stroke-width="13"
+            stroke-linecap="round"
+          />
+          <circle cx="50" cy="51" r="24" fill="#d79e7b" />
+          <path
+            d="M25 46q-1-31 29-29 27 1 23 37l-10-7-3-11q-13 13-39 10"
+            fill="#343042"
+          />
+          <path
+            d="M43 62q7 5 14 0"
+            fill="none"
+            stroke="#85514c"
+            stroke-width="2"
+          />
+          <circle cx="40" cy="52" r="2" fill="#343042" />
+          <circle cx="60" cy="52" r="2" fill="#343042" />
+          <path d="M29 90h14v25H29" fill="#a2bc53" />
+        </symbol>
+      </defs>
+    </svg>
+    <div class="app-shell">
+      <aside class="rail" aria-label="Primary navigation">
+        <a class="brand-mark" href="index.html" aria-label="Pokepet Go home"
+          ><svg><use href="#i-paw" /></svg
+        ></a>
+        <nav>
+          <button
+            class="rail-button active"
+            data-view="explore"
+            aria-label="Explore"
+            title="Explore"
+          >
+            <svg><use href="#i-compass" /></svg><span>Explore</span>
+          </button>
+          <button
+            class="rail-button"
+            data-view="pet"
+            aria-label="My pet"
+            title="My pet"
+          >
+            <svg><use href="#i-paw" /></svg><span>My pet</span>
+          </button>
+          <button
+            class="rail-button"
+            data-view="memories"
+            aria-label="Memories"
+            title="Memories"
+          >
+            <svg><use href="#i-book" /></svg><span>Memories</span>
+          </button>
+          <button
+            class="rail-button"
+            data-view="community"
+            aria-label="Community"
+            title="Community"
+          >
+            <svg><use href="#i-people" /></svg><span>Community</span>
+          </button>
+          <button
+            class="rail-button"
+            data-view="battle"
+            aria-label="Battle preview"
+            title="Battle preview"
+          >
+            <svg><use href="#i-swords" /></svg><span>Battle</span>
+          </button>
+        </nav>
+        <button
+          class="owner-avatar"
+          data-view="profile"
+          aria-label="Edit owner profile"
+        >
+          <svg viewBox="0 0 100 100">
+            <use href="#owner-character" width="100" height="180" y="-10" />
+          </svg>
+        </button>
+      </aside>
+      <div class="workspace">
+        <header class="topbar">
+          <a class="wordmark" href="index.html"
+            >pokepet<span>go</span><i>AFTERGLOW</i></a
+          >
+          <span class="demo-label"><span></span> UI concept · London map</span>
+          <button
+            class="points-pill"
+            data-view="pet"
+            aria-label="View points and upgrades"
+          >
+            <svg><use href="#i-star" /></svg><strong id="points">240</strong
+            ><span>XP to spend</span>
+          </button>
+        </header>
+        <main>
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">THE CITY IS YOUR PLAYGROUND</div>
+              <h1>
+                Small paws.<br class="mobile-break" />
+                <span>Big adventures.</span>
+              </h1>
+            </div>
+            <div class="weather">
+              <svg><use href="#i-moon" /></svg>
+              <div>
+                Haggerston, London<small
+                  >Laburnum Street · Evening concept</small
+                >
+              </div>
+            </div>
+          </div>
+          <div class="explore-layout">
+            <section
+              class="map-section"
+              aria-label="Explore the area around 55 Laburnum Street, London"
+            >
+              <div class="map-topline">
+                <span class="world-pill"
+                  ><span class="status-dot"></span>LONDON / E2</span
+                >
+                <div class="map-view-actions">
+                  <button
+                    id="map-motion"
+                    class="small-button"
+                    aria-pressed="false"
+                    aria-label="Pause map animation"
+                    hidden
+                  >
+                    Pause</button
+                  ><button
+                    id="map-mode"
+                    class="small-button"
+                    aria-pressed="false"
+                  >
+                    Show routes
+                  </button>
+                </div>
+              </div>
+              <div id="world-map" class="world-map"></div>
+              <span
+                class="map-perspective-hint"
+                id="map-perspective-hint"
+                hidden
+                >3D VIEW <i></i> Drag to look around</span
+              >
+              <div class="map-legend">
+                <span><i class="legend-dot lime"></i> Adventure</span
+                ><span><i class="legend-dot lilac"></i> Sample player</span>
+              </div>
+              <div class="map-controls">
+                <button
+                  id="recenter"
+                  aria-label="Recenter map"
+                  title="Recenter map"
+                >
+                  <svg><use href="#i-compass" /></svg></button
+                ><button id="zoom-in" aria-label="Zoom in">+</button
+                ><button id="zoom-out" aria-label="Zoom out">−</button>
+              </div>
+              <div class="map-caption">
+                55 Laburnum St, E2 8BD · Stylised map · Demo routes
+              </div>
+              <div class="selected-mission" id="selected-mission"></div>
+            </section>
+            <aside class="side-panel">
+              <section class="companion-card">
+                <div class="card-top">
+                  <span class="eyebrow">YOUR ADVENTURE DUO</span
+                  ><button
+                    class="icon-button"
+                    data-view="profile"
+                    aria-label="Customize your duo"
+                  >
+                    ↗
+                  </button>
+                </div>
+                <div class="pet-portrait">
+                  <span class="orbit orbit-one"></span
+                  ><span class="orbit orbit-two"></span
+                  ><svg class="pet-art"><use href="#pet-character" /></svg
+                  ><span class="pet-tag"><i></i> READY TO EXPLORE</span
+                  ><span class="portrait-star star-one">✧</span
+                  ><span class="portrait-star star-two">✦</span>
+                </div>
+                <div class="pet-title">
+                  <div>
+                    <h2 id="pet-name">Miso</h2>
+                    <span>Mooncat · Curious spirit</span>
+                  </div>
+                  <div class="level-badge">
+                    LVL<strong id="level">07</strong>
+                  </div>
+                </div>
+                <div class="bond-row">
+                  <span
+                    ><svg><use href="#i-heart" /></svg> You &
+                    <span id="bond-pet-name">Miso</span></span
+                  ><strong>Best buddies</strong>
+                </div>
+                <div class="bond-track"><i></i></div>
+                <div class="owner-line">
+                  <div class="mini-avatar">
+                    <svg viewBox="0 0 100 100">
+                      <use
+                        href="#owner-character"
+                        width="100"
+                        height="180"
+                        y="-8"
+                      />
+                    </svg>
+                  </div>
+                  <span id="owner-name">Alex</span
+                  ><small>Owner · preset avatar</small>
+                </div>
+              </section>
+              <button class="battle-teaser" data-view="battle">
+                <div class="battle-icon">
+                  <svg><use href="#i-swords" /></svg>
+                </div>
+                <span
+                  ><small>FRIENDLY RIVALRIES</small
+                  ><strong>Meet your match</strong
+                  ><em>Try a simulated battle</em></span
+                ><svg class="arrow"><use href="#i-arrow" /></svg>
+              </button>
+              <section class="community-teaser">
+                <div class="card-top">
+                  <span class="eyebrow">YOUR LOCAL PACK</span
+                  ><svg><use href="#i-people" /></svg>
+                </div>
+                <h3>Meet the neighbours.</h3>
+                <p>Discover nearby owners and their companions.</p>
+                <div
+                  class="neighbors-teaser-pets"
+                  aria-label="Four sample owners nearby"
+                >
+                  <span class="tone-lilac" aria-hidden="true">J</span>
+                  <span class="tone-peach" aria-hidden="true">S</span>
+                  <span class="tone-mint" aria-hidden="true">L</span>
+                  <small>4 owners nearby · Preview</small>
+                </div>
+                <button class="text-button" data-view="community">
+                  Discover neighbours <span>↗</span>
+                </button>
+              </section>
+            </aside>
+          </div>
+          <section class="quest-section">
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">A LITTLE SOMETHING FOR EVERY MOOD</span>
+                <h2>Your next chapter</h2>
+              </div>
+              <div class="filter-group" aria-label="Filter missions">
+                <button class="active" data-filter="all">All adventures</button
+                ><button data-filter="outdoors">Outdoors</button
+                ><button data-filter="indoors">Indoors</button>
+              </div>
+            </div>
+            <div class="quest-grid" id="quest-grid"></div>
+          </section>
+          <footer>
+            <span>Every ordinary day has a little magic in it.</span
+            ><span>AFTERGLOW · CONCEPT 02</span>
+          </footer>
+        </main>
+      </div>
+    </div>
+    <dialog id="dialog" aria-labelledby="dialog-title">
+      <button class="dialog-close" aria-label="Close dialog">
+        <svg><use href="#i-close" /></svg>
+      </button>
+      <div id="dialog-content"></div>
+    </dialog>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <script src="arena.js" defer></script>
+    <script src="map.js" defer></script>
+    <script src="community.js" defer></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>
