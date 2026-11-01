@@ -229,9 +229,7 @@
           <a class="wordmark" href="index.html"
             >pokepet<span>go</span><i>AFTERGLOW</i></a
           >
-          <span class="demo-label"
-            ><span></span> UI concept · sample world</span
-          >
+          <span class="demo-label"><span></span> UI concept · London map</span>
           <button
             class="points-pill"
             data-view="pet"
@@ -253,24 +251,46 @@
             <div class="weather">
               <svg><use href="#i-moon" /></svg>
               <div>
-                Moonrise district<small>Fictional world · Evening</small>
+                Haggerston, London<small
+                  >Laburnum Street · Evening concept</small
+                >
               </div>
             </div>
           </div>
           <div class="explore-layout">
-            <section class="map-section" aria-label="Explore Moonrise district">
+            <section
+              class="map-section"
+              aria-label="Explore the area around 55 Laburnum Street, London"
+            >
               <div class="map-topline">
                 <span class="world-pill"
-                  ><span class="status-dot"></span>MOONRISE / ZONE 01</span
-                ><button
-                  id="map-mode"
-                  class="small-button"
-                  aria-pressed="false"
+                  ><span class="status-dot"></span>LONDON / E2</span
                 >
-                  Show routes
-                </button>
+                <div class="map-view-actions">
+                  <button
+                    id="map-motion"
+                    class="small-button"
+                    aria-pressed="false"
+                    aria-label="Pause map animation"
+                    hidden
+                  >
+                    Pause</button
+                  ><button
+                    id="map-mode"
+                    class="small-button"
+                    aria-pressed="false"
+                  >
+                    Show routes
+                  </button>
+                </div>
               </div>
               <div id="world-map" class="world-map"></div>
+              <span
+                class="map-perspective-hint"
+                id="map-perspective-hint"
+                hidden
+                >3D VIEW <i></i> Drag to look around</span
+              >
               <div class="map-legend">
                 <span><i class="legend-dot lime"></i> Adventure</span
                 ><span><i class="legend-dot lilac"></i> Sample player</span>
@@ -286,7 +306,7 @@
                 ><button id="zoom-out" aria-label="Zoom out">−</button>
               </div>
               <div class="map-caption">
-                A little further. A little closer together.
+                55 Laburnum St, E2 8BD · Stylised map · Demo routes
               </div>
               <div class="selected-mission" id="selected-mission"></div>
             </section>
@@ -398,6 +418,7 @@
     </dialog>
     <div id="toast" role="status" aria-live="polite"></div>
     <script src="arena.js" defer></script>
+    <script src="map.js" defer></script>
     <script src="app.js" defer></script>
   </body>
 </html>

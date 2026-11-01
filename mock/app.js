@@ -1,11 +1,11 @@
-/* Afterglow is a local UI concept. World, players, and battle outcomes are fixtures. */
+/* Afterglow is a local UI concept. Geography is stylised; players and activities are fixtures. */
 const STORAGE_KEY = "pokepet-afterglow-v1";
 const missions = [
   {
     id: "moonwalk",
-    title: "The moonlight loop",
+    title: "The canal-side wander",
     kind: "WALK & DISCOVER",
-    place: "Moonrise Gardens",
+    place: "Regent’s Canal",
     minutes: 15,
     xp: 80,
     filter: "outdoors",
@@ -14,14 +14,13 @@ const missions = [
     memory:
       "A moonlit wander, a hundred new scents, and our favorite kind of company.",
     icon: "walk",
-    x: 410,
-    y: 280,
+    mapPosition: [170, -196],
   },
   {
     id: "play",
     title: "A little chase, a lot of joy",
     kind: "PLAY & CONNECT",
-    place: "Home base",
+    place: "Home base · demo",
     minutes: 10,
     xp: 60,
     filter: "indoors",
@@ -30,14 +29,13 @@ const missions = [
     memory:
       "The smallest toy. The biggest adventure. A little playtime, just for us.",
     icon: "play",
-    x: 680,
-    y: 410,
+    mapPosition: [123, 83],
   },
   {
     id: "bond",
     title: "The art of doing nothing",
     kind: "PAUSE & BOND",
-    place: "Starlight Lookout",
+    place: "Haggerston Bridge",
     minutes: 5,
     xp: 40,
     filter: "outdoors",
@@ -46,8 +44,7 @@ const missions = [
     memory:
       "We slowed down, watched the world, and made an ordinary moment ours.",
     icon: "bond",
-    x: 310,
-    y: 465,
+    mapPosition: [-126, -93],
   },
 ];
 const defaults = {
@@ -99,9 +96,11 @@ try {
 let selectedId = "moonwalk";
 let filter = "all";
 let zoom = 1;
+let neighborhood = null;
 let photoURL = "";
 let toastTimer;
 let battle = null;
+let petPreview = null;
 const dialog = document.querySelector("#dialog");
 const content = document.querySelector("#dialog-content");
 const escapeHTML = (value) =>
@@ -133,6 +132,7 @@ function toast(message) {
 }
 function openDialog(html) {
   disposeBattle();
+  disposePetPreview();
   dialog.classList.remove("battle-dialog");
   content.innerHTML = html;
   if (!dialog.open) dialog.showModal();
@@ -177,68 +177,69 @@ function tree(x, y, size = 1, tone = 0) {
   return `<g transform="translate(${x} ${y}) scale(${size})"><ellipse cy="3" rx="15" ry="7" fill="#0b1423" opacity=".3"/><path d="M0 2v-26" stroke="#8d9c8e" stroke-width="4"/><path d="M-18-25C-19-47-6-64 0-68 9-63 23-46 19-26 16-9-14-10-18-25" fill="${color}"/><path d="M0-20v-35" stroke="#a0b3a0" stroke-width="1" opacity=".25"/></g>`;
 }
 function marker(mission) {
-  return `<g class="map-marker" data-mission="${mission.id}" role="button" tabindex="0" aria-label="Select ${mission.title}" transform="translate(${mission.x} ${mission.y})"><ellipse class="map-pulse" cy="18" rx="31" ry="13" fill="#d4ff77" opacity=".13"/><ellipse cy="18" rx="19" ry="8" fill="none" stroke="#c9ed7d" stroke-width="1" opacity=".6"/><path d="m-7 0 7 16L7 0" fill="#c9ed7d"/><circle class="marker-ring" cy="-12" r="23" fill="#d4ff77" opacity=".12"/><circle class="marker-circle" cy="-12" r="17" fill="#d5fb78"/><svg x="-10" y="-22" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#324326" stroke-width="1.8"><use href="#i-${mission.icon === "walk" ? "compass" : mission.icon === "play" ? "bolt" : "moon"}"/></svg></g>`;
+  const [x, z] = mission.mapPosition;
+  const px = 480 + (x - z) * 0.7;
+  const py = 245 + (x + z) * 0.37;
+  return `<g class="map-marker" data-mission="${mission.id}" role="button" tabindex="0" aria-label="Select ${mission.title}" transform="translate(${px} ${py})"><ellipse class="map-pulse" cy="18" rx="31" ry="13" fill="#d4ff77" opacity=".13"/><ellipse cy="18" rx="19" ry="8" fill="none" stroke="#c9ed7d" stroke-width="1" opacity=".6"/><path d="m-7 0 7 16L7 0" fill="#c9ed7d"/><circle class="marker-ring" cy="-12" r="23" fill="#d4ff77" opacity=".12"/><circle class="marker-circle" cy="-12" r="17" fill="#d5fb78"/><svg x="-10" y="-22" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#324326" stroke-width="1.8"><use href="#i-${mission.icon === "walk" ? "compass" : mission.icon === "play" ? "bolt" : "moon"}"/></svg></g>`;
 }
 function renderWorld() {
-  let city = "";
-  [
-    [180, 205, 45, 28, 53, 0],
-    [240, 235, 34, 28, 32, 1],
-    [105, 267, 54, 33, 64, 0],
-    [197, 325, 32, 27, 38, 1],
-    [700, 225, 70, 38, 83, 1],
-    [790, 280, 46, 32, 60, 0],
-    [762, 353, 58, 32, 38, 1],
-    [572, 161, 47, 30, 51, 0],
-    [479, 122, 52, 33, 33, 1],
-    [91, 457, 57, 33, 47, 0],
-    [167, 500, 45, 35, 75, 0],
-    [247, 553, 52, 37, 39, 2],
-    [553, 562, 54, 34, 59, 1],
-    [652, 608, 55, 32, 87, 0],
-    [786, 520, 62, 40, 49, 2],
-    [874, 465, 43, 32, 72, 0],
-  ].forEach((args) => {
-    city += building(...args);
-  });
-  let trees = "";
-  [
-    [303, 232, 0.85, 0],
-    [350, 254, 0.65, 2],
-    [285, 290, 0.8, 3],
-    [450, 196, 0.65, 0],
-    [500, 220, 0.8, 2],
-    [540, 245, 0.6, 0],
-    [589, 274, 0.85, 2],
-    [618, 310, 0.6, 0],
-    [562, 354, 0.65, 2],
-    [472, 369, 0.6, 0],
-    [402, 391, 0.8, 0],
-    [327, 367, 0.8, 2],
-    [298, 338, 0.7, 0],
-    [415, 484, 0.55, 3],
-    [453, 511, 0.7, 0],
-    [512, 485, 0.55, 0],
-    [682, 485, 0.6, 3],
-    [721, 506, 0.8, 0],
-    [216, 178, 0.6, 0],
-    [128, 363, 0.55, 0],
-    [92, 339, 0.6, 0],
-    [870, 359, 0.65, 3],
-    [834, 387, 0.7, 2],
-  ].forEach((args) => {
-    trees += tree(...args);
-  });
-  document.querySelector("#world-map").innerHTML =
-    `<svg viewBox="0 0 960 650" preserveAspectRatio="xMidYMid slice" aria-label="Illustrated tilted map of fictional Moonrise district"><defs><radialGradient id="mapglow"><stop stop-color="#343b56"/><stop offset="1" stop-color="#1a2032"/></radialGradient><linearGradient id="river" x2="1" y2="1"><stop stop-color="#233f59"/><stop offset="1" stop-color="#375b72"/></linearGradient><pattern id="grid" width="80" height="40" patternUnits="userSpaceOnUse"><path d="M0 20 40 0 80 20 40 40Z" fill="none" stroke="#687493" stroke-width=".5" opacity=".13"/></pattern><filter id="soft-glow"><feGaussianBlur stdDeviation="5"/></filter></defs><rect width="960" height="650" fill="url(#mapglow)"/><rect width="960" height="650" fill="url(#grid)"/><path d="M-100 400 220 550 490 390 800 550 1030 440" fill="none" stroke="#101b30" stroke-width="85"/><path d="M-100 400 220 550 490 390 800 550 1030 440" fill="none" stroke="url(#river)" stroke-width="65"/><path d="M-100 400 220 550 490 390 800 550 1030 440" fill="none" stroke="#8ebcd2" stroke-width="1.5" stroke-dasharray="25 45" opacity=".23"/>
-    <g fill="none" stroke-linejoin="round"><path d="M-30 195 940 675M-50 320 650 650M160-20 1030 410M410-20 1030 290M60 620 1000 120M-30 420 650 45M230 690 1050 260" stroke="#121a2b" stroke-width="30"/><path d="M-30 195 940 675M-50 320 650 650M160-20 1030 410M410-20 1030 290M60 620 1000 120M-30 420 650 45M230 690 1050 260" stroke="#505c78" stroke-width="1.5" stroke-dasharray="7 8" opacity=".5"/><path d="m263 385 87 43M605 457l86 44" stroke="#68738d" stroke-width="24"/><path d="m263 385 87 43M605 457l86 44" stroke="#a4a9bc" stroke-width="1" stroke-dasharray="4 7"/></g>
-    <path d="m258 273 204-111 188 100-200 110Z" fill="#2a4141" stroke="#537068" stroke-width="2"/><path d="m282 274 180-98 163 86-175 95Z" fill="#314b46"/><path d="m319 276 141-73 115 59-125 67Z" fill="none" stroke="#778c72" stroke-width="7" opacity=".6"/><path d="m320 276 129 53 126-67" fill="none" stroke="#a7b29a" stroke-width="1" opacity=".5"/><ellipse cx="458" cy="270" rx="52" ry="25" fill="#365c6b" stroke="#66888b" stroke-width="3"/><ellipse cx="458" cy="270" rx="36" ry="16" fill="#467585"/><path d="m438 267 29 2m-16 8 23-1" stroke="#85b7bf" opacity=".6"/><path d="m411 278 23 13" stroke="#c9c6aa" stroke-width="9"/>
-    ${city}${trees}<g fill="#e2e5ae"><circle cx="241" cy="365" r="2"/><circle cx="676" cy="305" r="2"/><circle cx="553" cy="422" r="2"/><circle cx="717" cy="162" r="2"/><circle cx="214" cy="417" r="2"/></g><g fill="#d4f68a" opacity=".5" filter="url(#soft-glow)"><circle cx="241" cy="365" r="7"/><circle cx="676" cy="305" r="7"/><circle cx="553" cy="422" r="7"/></g>
-    <path class="route-path" d="M526 390 472 363 377 310 410 280M526 390l82-45 72 65M526 390l-98 52-118 23" fill="none" stroke="#d5fb78" stroke-width="3" stroke-dasharray="6 8" stroke-linecap="round"/>
-    <text x="417" y="161" class="map-location-label" transform="rotate(27 417 161)">MOONRISE GARDENS</text><text x="632" y="558" class="map-location-label" transform="rotate(27 632 558)">RIVER WALK</text><text x="78" y="428" class="map-location-label" transform="rotate(-29 78 428)">STARLIGHT</text>
-    <ellipse cx="527" cy="409" rx="45" ry="17" fill="#d5fb78" opacity=".06"/><ellipse cx="527" cy="409" rx="35" ry="13" fill="none" stroke="#d5fb78" stroke-width="1" opacity=".55"/><svg class="map-owner" x="486" y="313" width="62" height="100" viewBox="0 0 100 180"><use href="#owner-character"/></svg><svg class="map-pet" x="529" y="359" width="55" height="55" viewBox="0 0 200 200"><use href="#pet-character"/></svg><rect x="483" y="424" width="101" height="22" rx="11" fill="#111724" opacity=".9"/><text x="533" y="438" text-anchor="middle" class="map-player-label">YOU + <tspan id="map-pet-name">${escapeHTML(state.pet.toUpperCase())}</tspan></text>
-    <g transform="translate(743 306)"><ellipse cy="32" rx="17" ry="7" fill="#bba9f8" opacity=".2"/><circle r="16" fill="#383c59" stroke="#bba9f8" stroke-width="1.5"/><svg x="-15" y="-16" width="30" height="30" viewBox="0 0 200 200"><use href="#pet-character"/></svg><path d="m-4 17 4 9 4-9" fill="#bba9f8"/><text y="49" text-anchor="middle" class="map-player-label">JUNE + NOVA</text></g>
-    ${missions.map(marker).join("")}<g fill="#9eabc9" opacity=".5"><circle cx="70" cy="145" r="1.5"/><circle cx="700" cy="90" r="1"/><circle cx="826" cy="180" r="1.5"/><circle cx="860" cy="110" r="1"/></g></svg>`;
+  const city = [
+    [440, 200, 44, 40, 32, 1],
+    [495, 225, 40, 30, 27, 0],
+    [325, 140, 90, 48, 49, 0],
+    [405, 303, 75, 65, 40, 1],
+    [650, 220, 42, 35, 49, 1],
+    [592, 365, 48, 39, 54, 0],
+    [225, 230, 53, 33, 51, 0],
+    [290, 360, 44, 37, 42, 2],
+    [610, 111, 50, 35, 52, 0],
+    [710, 170, 47, 32, 45, 1],
+    [430, 94, 47, 32, 38, 0],
+    [175, 312, 43, 32, 45, 1],
+  ]
+    .map((args) => building(...args))
+    .join("");
+  const trees = [
+    [279, 283],
+    [258, 310],
+    [650, 372],
+    [699, 401],
+    [711, 441],
+    [545, 110],
+  ]
+    .map(([x, y]) => tree(x, y, 0.6))
+    .join("");
+  document.querySelector("#world-map").innerHTML = `
+    <svg viewBox="0 0 960 650" preserveAspectRatio="xMidYMid slice" role="group" aria-label="Stylised map around 55 Laburnum Street in Haggerston, London. Regent’s Canal lies north of Laburnum Street, with Haggerston Bridge to the west and Queensbridge Road to the east. Distances and buildings are approximate.">
+      <g aria-hidden="true">
+      <rect width="960" height="650" fill="#293d49"/>
+      <g transform="matrix(.7 .37 -.7 .37 480 245)">
+        <rect x="-365" y="83" width="156" height="114" fill="#48685b"/>
+        <rect x="390" y="321" width="350" height="300" fill="#496c58"/>
+        <path d="M-900 35H900M-900 285H900M-150-900V285M350-900V900" stroke="#8d9797" stroke-width="42" fill="none"/>
+        <path d="M-900 35H900M-900 285H900M-150-900V285M350-900V900" stroke="#35404f" stroke-width="28" fill="none"/>
+        <path d="M-900-148H900" stroke="#8a989a" stroke-width="90"/>
+        <path d="M-900-148H900" stroke="#366c7f" stroke-width="64"/>
+        <path d="M-900-148H900" stroke="#90c3cc" stroke-width="1.5" stroke-dasharray="20 30"/>
+        <path d="M-150-191V-105M350-191V-105" stroke="#b2a496" stroke-width="44"/>
+        <path d="M-150-191V-105M350-191V-105" stroke="#465365" stroke-width="28"/>
+        <path class="route-path" d="M-110 100V17H-126V-196H170M-110 100V17H123V83M-110 100V17H-126V-93" fill="none" stroke="#d5fb78" stroke-width="4" stroke-dasharray="7 10"/>
+      </g>
+      ${city}${trees}
+      <text x="590" y="221" class="map-location-label" transform="rotate(28 590 221)">REGENT’S CANAL</text>
+      <text x="580" y="320" class="map-location-label" transform="rotate(28 580 320)">LABURNUM STREET</text>
+      <text x="361" y="372" class="map-location-label" transform="rotate(28 361 372)">HAGGERSTON BATHS</text>
+      <text x="640" y="433" class="map-location-label" transform="rotate(-28 640 433)">QUEENSBRIDGE RD</text>
+      <text x="285" y="151" class="map-location-label">BRIDGE ACADEMY</text>
+      <rect x="461" y="174" width="137" height="34" rx="5" fill="#182932" stroke="#d5fb7877"/>
+      <text x="529" y="188" text-anchor="middle" class="map-player-label">55 LABURNUM ST</text>
+      <text x="529" y="200" text-anchor="middle" class="map-player-label">HOXTON DOCKS · E2 8BD</text>
+      <svg class="map-owner" x="306" y="170" width="47" height="76" viewBox="0 0 100 180"><use href="#owner-character"/></svg>
+      <svg class="map-pet" x="346" y="211" width="40" height="40" viewBox="0 0 200 200"><use href="#pet-character"/></svg>
+      <text x="343" y="264" text-anchor="middle" class="map-player-label">YOU + <tspan id="map-pet-name">${escapeHTML(state.pet.toUpperCase())}</tspan></text>
+      </g>
+      ${missions.map(marker).join("")}
+    </svg>`;
   document.querySelectorAll(".map-marker").forEach((element) => {
     element.addEventListener("click", () =>
       selectMission(element.dataset.mission),
@@ -267,6 +268,7 @@ function selectMission(id) {
   );
 }
 function renderSelected() {
+  neighborhood?.select(selectedId);
   const mission = missions.find((item) => item.id === selectedId);
   const completed = state.completed.includes(mission.id);
   document.querySelector("#selected-mission").innerHTML =
@@ -359,7 +361,7 @@ function completeMission(id) {
 }
 function showPet() {
   openDialog(
-    `<span class="eyebrow">YOUR LITTLE ADVENTURER</span><h2 id="dialog-title">Meet ${escapeHTML(state.pet)}.</h2><p>Curious spirit. Loyal sidekick. Always ready for one more little adventure.</p><div class="dialog-art">${petArt()}</div><div class="detail-label">${state.points} XP available · 40 XP per upgrade</div><div class="stats-grid">${Object.entries(
+    `<span class="eyebrow">YOUR LITTLE ADVENTURER</span><h2 id="dialog-title">Meet ${escapeHTML(state.pet)}.</h2><p>Curious spirit. Loyal sidekick. Always ready for one more little adventure.</p><div id="pet-profile-stage" class="pet-profile-stage">${petArt()}</div><div class="pet-profile-actions" aria-label="Play with your pet"><button class="secondary-button" data-pet-motion="wave">${icon("paw")} Say hello</button><button class="secondary-button" data-pet-motion="play">${icon("star")} Play</button><button class="secondary-button" data-pet-motion="heal">${icon("heart")} Give love</button></div><p id="pet-profile-mood" class="pet-profile-mood" role="status" aria-live="polite">A curious glance. A little tail wag. Happy to see you.</p><div class="detail-label">${state.points} XP available · 40 XP per upgrade</div><div class="stats-grid">${Object.entries(
       state.stats,
     )
       .map(
@@ -370,6 +372,7 @@ function showPet() {
         "",
       )}</div><p class="confirm-note">Fictional game stats · ${storageMessage()}</p><button class="primary-button" id="pet-customize">Customize your duo ${icon("arrow")}</button>`,
   );
+  mountPetPreview();
   document.querySelectorAll("[data-upgrade]").forEach((button) =>
     button.addEventListener("click", () => {
       if (state.points < 40) {
@@ -388,6 +391,68 @@ function showPet() {
     .querySelector("#pet-customize")
     .addEventListener("click", showProfile);
 }
+function disposePetPreview() {
+  const previous = petPreview;
+  petPreview = null;
+  previous?.scene?.dispose();
+}
+function mountPetPreview() {
+  const host = document.querySelector("#pet-profile-stage");
+  const status = document.querySelector("#pet-profile-mood");
+  const buttons = [...document.querySelectorAll("[data-pet-motion]")];
+  const preview = { scene: null, busy: false };
+  petPreview = preview;
+  try {
+    preview.scene = window.PokepetArena?.mount(host, {
+      theme: "afterglow",
+      playerKind: "cat",
+      mode: "profile",
+    });
+  } catch {
+    host.innerHTML = petArt();
+  }
+  if (!preview.scene || host.dataset.renderer !== "webgl") {
+    status.textContent =
+      "3D is unavailable here. Your profile and upgrades still work.";
+    buttons.forEach((button) => {
+      button.disabled = true;
+    });
+    return;
+  }
+  const reactions = {
+    wave: [
+      `${state.pet} lifts a paw to say hello!`,
+      "A little wave, just for you.",
+    ],
+    play: [`${state.pet} does a happy hop!`, "More play? That tail says yes."],
+    heal: [
+      `${state.pet} leans into the love.`,
+      "Happy eyes. A very happy companion.",
+    ],
+  };
+  buttons.forEach((button) =>
+    button.addEventListener("click", async () => {
+      if (petPreview !== preview || preview.busy) return;
+      preview.busy = true;
+      buttons.forEach((item) => {
+        item.disabled = true;
+      });
+      const move = button.dataset.petMotion;
+      status.textContent = reactions[move][0];
+      try {
+        await preview.scene.play({ actor: "player", move });
+      } finally {
+        if (petPreview === preview && dialog.open) {
+          preview.busy = false;
+          status.textContent = reactions[move][1];
+          buttons.forEach((item) => {
+            item.disabled = host.dataset.renderer !== "webgl";
+          });
+        }
+      }
+    }),
+  );
+}
 function showMemories() {
   openDialog(
     `<span class="eyebrow">THE GOOD DAYS, COLLECTED</span><h2 id="dialog-title">Little moments.<br>Lasting memories.</h2><p>Your adventures with ${escapeHTML(state.pet)}, one chapter at a time.</p><div class="memory-list">${state.memories.length ? state.memories.map((memory) => `<article class="memory-card">${questArt(memory.icon)}<div><h3>${escapeHTML(memory.title)}</h3><p>${escapeHTML(memory.caption)}</p><small>${escapeHTML(memory.date)} · +${Number(memory.xp) || 0} XP</small></div></article>`).join("") : `<div class="empty-state">${icon("book")}<p>Your first memory is waiting to happen.<br>Complete an adventure to start your collection.</p></div>`}</div><p class="confirm-note">${storageMessage()} Memory artwork is preset illustration.</p><button class="primary-button" id="memories-explore">Find an adventure ${icon("compass")}</button>`,
@@ -398,7 +463,7 @@ function showMemories() {
 }
 function showCommunity() {
   openDialog(
-    `<span class="eyebrow">A NEIGHBORHOOD OF LITTLE ADVENTURERS</span><h2 id="dialog-title">More paws.<br>More possibilities.</h2><p>Every adventure adds a little light. Together, this neighborhood is working toward 100 adventures.</p><div class="community-meter"><i></i></div><p><strong style="color:var(--cyan)">68 / 100 adventures</strong> · Sample community goal</p><div class="community-list"><div class="community-person">${petArt()}<div><strong>June & Nova</strong><small>Moonrise Gardens · Sample player</small></div><span>420 XP</span></div><div class="community-person">${petArt()}<div><strong>Sam & Pip</strong><small>River Walk · Sample player</small></div><span>360 XP</span></div><div class="community-person">${petArt()}<div><strong>${escapeHTML(state.owner)} & ${escapeHTML(state.pet)}</strong><small>Your local concept progress</small></div><span>${state.totalXP} XP</span></div></div><p class="confirm-note">Community participation and other players are fixtures in this UI concept. Your activities stay on this device.</p><button class="primary-button" id="community-battle">Preview a friendly match ${icon("swords")}</button>`,
+    `<span class="eyebrow">A NEIGHBORHOOD OF LITTLE ADVENTURERS</span><h2 id="dialog-title">More paws.<br>More possibilities.</h2><p>Every adventure adds a little light. Together, this neighborhood is working toward 100 adventures.</p><div class="community-meter"><i></i></div><p><strong style="color:var(--cyan)">68 / 100 adventures</strong> · Sample community goal</p><div class="community-list"><div class="community-person">${petArt()}<div><strong>June & Nova</strong><small>Regent’s Canal · Sample player</small></div><span>420 XP</span></div><div class="community-person">${petArt()}<div><strong>Sam & Pip</strong><small>Laburnum Street · Sample player</small></div><span>360 XP</span></div><div class="community-person">${petArt()}<div><strong>${escapeHTML(state.owner)} & ${escapeHTML(state.pet)}</strong><small>Your local concept progress</small></div><span>${state.totalXP} XP</span></div></div><p class="confirm-note">Community participation and other players are fixtures in this UI concept. Your activities stay on this device.</p><button class="primary-button" id="community-battle">Preview a friendly match ${icon("swords")}</button>`,
   );
   document
     .querySelector("#community-battle")
@@ -735,8 +800,10 @@ dialog.addEventListener("click", (event) => {
 });
 dialog.addEventListener("close", () => {
   disposeBattle();
+  disposePetPreview();
   dialog.classList.remove("battle-dialog");
 });
+window.addEventListener("pagehide", disposePetPreview);
 document.querySelectorAll("[data-filter]").forEach((button) =>
   button.addEventListener("click", () => {
     filter = button.dataset.filter;
@@ -751,10 +818,23 @@ document.querySelector("#map-mode").addEventListener("click", (event) => {
   event.currentTarget.setAttribute("aria-pressed", String(active));
   event.currentTarget.textContent = active ? "Hide routes" : "Show routes";
   document.querySelector("#world-map").classList.toggle("show-routes", active);
+  neighborhood?.setRoutes(active);
+});
+document.querySelector("#map-motion").addEventListener("click", (event) => {
+  const paused = event.currentTarget.getAttribute("aria-pressed") !== "true";
+  event.currentTarget.setAttribute("aria-pressed", String(paused));
+  event.currentTarget.setAttribute(
+    "aria-label",
+    paused ? "Resume map animation" : "Pause map animation",
+  );
+  event.currentTarget.textContent = paused ? "Resume" : "Pause";
+  neighborhood?.setPaused(paused);
 });
 function setZoom(nextZoom) {
   zoom = Math.max(0.85, Math.min(1.4, nextZoom));
-  document.querySelector("#world-map>svg").style.transform = `scale(${zoom})`;
+  if (neighborhood) neighborhood.setZoom(zoom);
+  else
+    document.querySelector("#world-map>svg").style.transform = `scale(${zoom})`;
 }
 document
   .querySelector("#zoom-in")
@@ -764,10 +844,28 @@ document
   .addEventListener("click", () => setZoom(zoom - 0.15));
 document.querySelector("#recenter").addEventListener("click", () => {
   setZoom(1);
+  neighborhood?.recenter();
   selectMission("moonwalk");
   toast("Back to you and your sidekick.");
 });
 renderWorld();
+try {
+  neighborhood = window.AfterglowMap?.mount(
+    document.querySelector("#world-map"),
+    {
+      missions,
+      selectMission,
+      petName: state.pet,
+    },
+  );
+  if (neighborhood) {
+    document.querySelector("#map-motion").hidden = false;
+    document.querySelector("#map-perspective-hint").hidden = false;
+  }
+} catch (error) {
+  console.warn("The 3D map is unavailable; using the illustrated map.", error);
+  renderWorld();
+}
 refresh();
 if (!persistent)
   toast(

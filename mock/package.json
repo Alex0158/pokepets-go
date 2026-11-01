@@ -1,0 +1,19 @@
+{
+  "name": "pokepets-go-mock",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build-arena.mjs",
+    "lint": "eslint app.js map.js battle-scene.js",
+    "format": "prettier --write app.js map.js battle-scene.js index.html styles.css README.md package.json build-arena.mjs eslint.config.js",
+    "format:check": "prettier --check app.js map.js battle-scene.js index.html styles.css README.md package.json build-arena.mjs eslint.config.js"
+  },
+  "dependencies": {
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "eslint": "9.39.0",
+    "prettier": "3.6.2"
+  }
+}
