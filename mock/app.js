@@ -133,7 +133,7 @@ function toast(message) {
 function openDialog(html) {
   disposeBattle();
   disposePetPreview();
-  dialog.classList.remove("battle-dialog");
+  dialog.classList.remove("battle-dialog", "community-dialog");
   content.innerHTML = html;
   if (!dialog.open) dialog.showModal();
   dialog.scrollTop = 0;
@@ -453,12 +453,13 @@ function showMemories() {
     .addEventListener("click", () => dialog.close());
 }
 function showCommunity() {
-  openDialog(
-    `<span class="eyebrow">A NEIGHBORHOOD OF LITTLE ADVENTURERS</span><h2 id="dialog-title">More paws.<br>More possibilities.</h2><p>Every adventure adds a little light. Together, this neighborhood is working toward 100 adventures.</p><div class="community-meter"><i></i></div><p><strong style="color:var(--cyan)">68 / 100 adventures</strong> · Sample community goal</p><div class="community-list"><div class="community-person">${petArt()}<div><strong>June & Nova</strong><small>Regent’s Canal · Sample player</small></div><span>420 XP</span></div><div class="community-person">${petArt()}<div><strong>Sam & Pip</strong><small>Laburnum Street · Sample player</small></div><span>360 XP</span></div><div class="community-person">${petArt()}<div><strong>${escapeHTML(state.owner)} & ${escapeHTML(state.pet)}</strong><small>Your local concept progress</small></div><span>${state.totalXP} XP</span></div></div><p class="confirm-note">Community participation and other players are fixtures in this UI concept. Your activities stay on this device.</p><button class="primary-button" id="community-battle">Preview a friendly match ${icon("swords")}</button>`,
-  );
-  document
-    .querySelector("#community-battle")
-    .addEventListener("click", showBattle);
+  window.AfterglowCommunity.open({
+    openDialog,
+    dialog,
+    content,
+    icon,
+    escapeHTML,
+  });
 }
 function showProfile() {
   openDialog(
@@ -792,7 +793,7 @@ dialog.addEventListener("click", (event) => {
 dialog.addEventListener("close", () => {
   disposeBattle();
   disposePetPreview();
-  dialog.classList.remove("battle-dialog");
+  dialog.classList.remove("battle-dialog", "community-dialog");
 });
 window.addEventListener("pagehide", disposePetPreview);
 document.querySelectorAll("[data-filter]").forEach((button) =>

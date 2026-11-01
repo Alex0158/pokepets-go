@@ -10,6 +10,7 @@
     />
     <title>Pokepet Go — Afterglow</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="community.css" />
   </head>
   <body>
     <svg
@@ -373,18 +374,22 @@
               </button>
               <section class="community-teaser">
                 <div class="card-top">
-                  <span class="eyebrow">BETTER, TOGETHER</span
+                  <span class="eyebrow">YOUR LOCAL PACK</span
                   ><svg><use href="#i-people" /></svg>
                 </div>
-                <h3>Light up the park.</h3>
-                <p>One small adventure. A brighter neighborhood.</p>
-                <div class="community-meter"><i></i></div>
-                <div class="community-numbers">
-                  <strong>68 <span>/ 100 adventures</span></strong
-                  ><span>Sample goal</span>
+                <h3>Meet the neighbours.</h3>
+                <p>Discover nearby owners and their companions.</p>
+                <div
+                  class="neighbors-teaser-pets"
+                  aria-label="Four sample owners nearby"
+                >
+                  <span class="tone-lilac" aria-hidden="true">J</span>
+                  <span class="tone-peach" aria-hidden="true">S</span>
+                  <span class="tone-mint" aria-hidden="true">L</span>
+                  <small>4 owners nearby · Preview</small>
                 </div>
                 <button class="text-button" data-view="community">
-                  Explore the community <span>↗</span>
+                  Discover neighbours <span>↗</span>
                 </button>
               </section>
             </aside>
@@ -419,6 +424,7 @@
     <div id="toast" role="status" aria-live="polite"></div>
     <script src="arena.js" defer></script>
     <script src="map.js" defer></script>
+    <script src="community.js" defer></script>
     <script src="app.js" defer></script>
   </body>
 </html>

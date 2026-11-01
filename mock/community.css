@@ -1,0 +1,645 @@
+dialog.community-dialog {
+  width: min(780px, calc(100vw - 28px));
+  padding: 36px;
+  background: #181c27;
+}
+.community-dialog h2 {
+  font-size: 32px;
+  letter-spacing: -1.1px;
+}
+.community-dialog h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+.community-dialog .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.6px;
+}
+.community-dialog p {
+  margin: 8px 0;
+}
+.neighbors-heading {
+  padding-right: 16px;
+}
+.neighbors-heading h2 {
+  margin-bottom: 8px;
+}
+.neighbors-heading p {
+  font-size: 13px;
+}
+.neighbors-location {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 20px;
+  font-size: 11px;
+  color: #c6cbd7;
+}
+.neighbors-location > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.neighbors-location svg {
+  width: 14px;
+  height: 14px;
+  color: var(--lime);
+}
+.neighbors-radius {
+  color: var(--muted);
+}
+.neighbors-demo {
+  font-size: 9px;
+  color: #abb2c4;
+  border: 1px solid #394151;
+  border-radius: 5px;
+  padding: 5px 7px;
+  white-space: nowrap;
+}
+.neighbors-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #3b4252;
+  border-radius: 10px;
+  padding: 0 13px;
+  background: #121721;
+}
+.neighbors-search:focus-within {
+  border-color: var(--lime);
+}
+.neighbors-search svg {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.neighbors-search input {
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--white);
+  padding: 14px 0;
+  font-size: 12px;
+  outline: none;
+}
+.neighbors-search input::placeholder {
+  color: #949caf;
+}
+.neighbors-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 14px 0 25px;
+}
+.neighbors-filters button {
+  padding: 8px 13px;
+  border: 1px solid #353d4d;
+  background: transparent;
+  border-radius: 20px;
+  color: #b9c0d0;
+  font-size: 11px;
+}
+.neighbors-filters button[aria-pressed="true"] {
+  background: #d5fb78;
+  border-color: #d5fb78;
+  color: #26351c;
+}
+.neighbors-results-heading,
+.neighbor-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.neighbors-results-heading > span,
+.neighbor-section-title > span {
+  color: var(--muted);
+  font-size: 10px;
+}
+.neighbors-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.neighbor-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  background: #202532;
+  border: 1px solid #343d4b;
+  border-radius: 13px;
+  padding: 17px;
+  min-width: 0;
+}
+.neighbor-card:hover {
+  border-color: #8a9d69;
+  background: #252d38;
+}
+.neighbor-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.neighbor-avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--neighbor-bg);
+  color: var(--neighbor-accent);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.tone-lilac {
+  --neighbor-bg: #39354e;
+  --neighbor-accent: #d6c8ff;
+}
+.tone-peach {
+  --neighbor-bg: #473b35;
+  --neighbor-accent: #f1c5a4;
+}
+.tone-mint {
+  --neighbor-bg: #2b423e;
+  --neighbor-accent: #b7dec7;
+}
+.tone-sky {
+  --neighbor-bg: #2d3d50;
+  --neighbor-accent: #b7d8f3;
+}
+.neighbor-card strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+.neighbor-card small {
+  display: block;
+  font-size: 10px;
+  color: #a8b1c3;
+  margin-top: 5px;
+}
+.neighbor-distance {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 10px;
+  color: #adb8c2;
+}
+.neighbor-pets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 0;
+  flex: 1;
+}
+.neighbor-pet-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.neighbor-pet-summary strong {
+  font-size: 12px;
+}
+.neighbor-pet-summary small {
+  font-size: 10px;
+  margin-top: 3px;
+}
+.neighbor-pet-thumb {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--neighbor-bg);
+  overflow: hidden;
+}
+svg.neighbor-pet-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  stroke: none;
+}
+.neighbor-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding-top: 13px;
+  border-top: 1px solid #353d4b;
+  font-size: 9px;
+  color: var(--muted);
+}
+.neighbor-card-footer > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #d6e9b4;
+}
+.neighbor-card-footer svg {
+  width: 13px;
+  height: 13px;
+}
+.community-dialog .neighbors-footnote {
+  margin: 22px 0 0;
+  font-size: 10px;
+  color: #929bb0;
+  line-height: 1.7;
+}
+.neighbors-empty {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 36px 16px;
+  border: 1px dashed #3b4353;
+  border-radius: 12px;
+}
+.neighbors-empty > svg {
+  color: var(--lilac);
+  width: 30px;
+  height: 30px;
+  margin-bottom: 14px;
+}
+.neighbors-empty .secondary-button {
+  margin-top: 12px;
+}
+.neighbor-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  margin: 0 0 24px;
+  border: 0;
+  background: none;
+  font-size: 11px;
+  color: #bdc6d3;
+}
+.neighbor-back svg {
+  width: 15px;
+  height: 15px;
+  rotate: 180deg;
+}
+.neighbor-profile-heading {
+  display: flex;
+  gap: 17px;
+  align-items: center;
+}
+.neighbor-profile-heading .neighbor-avatar {
+  width: 66px;
+  height: 66px;
+  font-size: 28px;
+}
+.neighbor-profile-heading h2 {
+  margin: 5px 0;
+}
+.neighbor-profile-heading h2:focus {
+  outline: none;
+}
+.neighbor-profile-heading p {
+  margin: 0;
+  font-size: 11px;
+}
+.community-dialog .neighbor-bio {
+  margin: 18px 0 12px;
+  color: #d0d5df;
+}
+.neighbor-profile-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+}
+.neighbor-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #333b49;
+}
+.neighbor-pet-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.neighbor-pet-selector button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #394152;
+  border-radius: 20px;
+  background: none;
+  color: #bec6d4;
+  padding: 5px 12px 5px 6px;
+  font-size: 11px;
+}
+.neighbor-pet-selector .neighbor-pet-art {
+  width: 28px;
+  height: 28px;
+}
+.neighbor-pet-selector button[aria-pressed="true"] {
+  background: #d5fb7812;
+  border-color: #9fbf64;
+  color: var(--lime);
+}
+.neighbor-pet-hero {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+  border-radius: 13px;
+  padding: 22px;
+  background: linear-gradient(125deg, var(--neighbor-bg), #222936);
+}
+.neighbor-pet-portrait {
+  height: 140px;
+}
+.neighbor-level {
+  color: var(--neighbor-accent);
+  letter-spacing: 1.4px;
+  font-size: 9px;
+}
+.neighbor-pet-hero h4 {
+  margin: 8px 0 4px;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.7px;
+}
+.neighbor-pet-hero p {
+  font-size: 11px;
+  color: #c0c5d2;
+}
+.neighbor-xp-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 9px;
+  margin-top: 18px;
+  color: #c1cbbb;
+}
+.neighbor-pet-hero progress {
+  display: block;
+  appearance: none;
+  border: 0;
+  width: 100%;
+  height: 4px;
+  margin-top: 7px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #ffffff16;
+  accent-color: var(--lime);
+}
+.neighbor-pet-hero progress::-webkit-progress-bar {
+  background: #ffffff16;
+}
+.neighbor-pet-hero progress::-webkit-progress-value {
+  background: var(--lime);
+}
+.neighbor-pet-hero progress::-moz-progress-bar {
+  background: var(--lime);
+}
+.neighbor-pet-stats,
+.neighbor-totals {
+  display: grid;
+  margin: 0;
+}
+.neighbor-pet-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 19px 0;
+  border-bottom: 1px solid #333b49;
+}
+.neighbor-pet-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  text-align: center;
+  gap: 6px;
+  border-right: 1px solid #333b49;
+}
+.neighbor-pet-stats > div:last-child {
+  border: 0;
+}
+.neighbor-pet-stats dt,
+.neighbor-totals dt {
+  color: #a3adbf;
+  font-size: 10px;
+}
+.neighbor-pet-stats dd {
+  margin: 0;
+  font-size: 22px;
+}
+.neighbor-pet-record {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding-top: 14px;
+  font-size: 10px;
+  color: #9da9bc;
+}
+.neighbor-pet-record strong {
+  font-weight: 500;
+  color: #d9e1da;
+}
+.neighbor-totals {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px 16px;
+  padding: 7px 0 23px;
+}
+.neighbor-totals dd {
+  margin: 8px 0 0;
+  font-size: 23px;
+  letter-spacing: -0.4px;
+}
+.neighbor-totals dd small {
+  font-size: 12px;
+  color: #b3bcce;
+  letter-spacing: 0;
+}
+.neighbor-mission-breakdown {
+  padding: 17px;
+  background: #121923;
+  border-radius: 10px;
+  display: grid;
+  gap: 13px;
+}
+.neighbor-mission-breakdown > div {
+  display: grid;
+  grid-template-columns: 110px 1fr 24px;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  color: #bac4d3;
+}
+.neighbor-mission-breakdown strong {
+  color: #d8e6be;
+  text-align: right;
+  font-weight: 500;
+}
+.neighbor-bar {
+  height: 4px;
+  background: #2c3643;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.neighbor-bar i {
+  display: block;
+  height: 100%;
+  background: #abc77b;
+  border-radius: 3px;
+}
+.neighbor-activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.neighbor-activity li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #303847;
+}
+.neighbor-activity li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.neighbor-activity-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  background: #2c3442;
+  border-radius: 10px;
+  color: #c1b7e8;
+}
+.neighbor-activity-icon svg {
+  width: 17px;
+  height: 17px;
+}
+.neighbor-activity strong {
+  font-size: 11px;
+  font-weight: 500;
+}
+.neighbor-activity small {
+  display: block;
+  color: #9ca8ba;
+  margin-top: 5px;
+  font-size: 10px;
+}
+.neighbor-activity li > span:last-child {
+  margin-left: auto;
+  white-space: nowrap;
+  color: #c9e59c;
+  font-size: 10px;
+}
+.community-teaser .neighbors-teaser-pets {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 16px;
+}
+.neighbors-teaser-pets > span {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  border: 2px solid #1b1f2a;
+  border-radius: 50%;
+  margin-right: -5px;
+  color: var(--neighbor-accent);
+  background: var(--neighbor-bg);
+  font-size: 10px;
+}
+.neighbors-teaser-pets small {
+  margin-left: 13px;
+  color: #9ea9bd;
+  font-size: 9px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 600px) {
+  dialog.community-dialog {
+    padding: 25px 19px;
+    max-height: calc(100dvh - 24px);
+    width: calc(100vw - 20px);
+  }
+  .community-dialog h2 {
+    font-size: 27px;
+  }
+  .neighbors-heading {
+    padding-top: 12px;
+  }
+  .neighbors-location {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .neighbors-grid {
+    grid-template-columns: 1fr;
+  }
+  .neighbor-card {
+    padding: 16px;
+  }
+  .neighbor-pets {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .neighbor-profile-heading {
+    gap: 12px;
+  }
+  .neighbor-profile-heading .neighbor-avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 23px;
+  }
+  .neighbor-profile-heading .eyebrow {
+    font-size: 8px;
+    letter-spacing: 0.7px;
+  }
+  .neighbor-section-title > span {
+    font-size: 9px;
+  }
+  .neighbor-pet-hero {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 12px;
+    padding: 17px 12px;
+  }
+  .neighbor-pet-portrait {
+    height: 100px;
+  }
+  .neighbor-pet-hero h4 {
+    font-size: 26px;
+  }
+  .neighbor-pet-hero p {
+    font-size: 10px;
+  }
+  .neighbor-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .neighbor-mission-breakdown {
+    padding: 14px 12px;
+  }
+  .neighbor-mission-breakdown > div {
+    grid-template-columns: 99px 1fr 20px;
+    gap: 8px;
+  }
+  .neighbor-activity li {
+    gap: 9px;
+  }
+  .neighbor-activity li > span:last-child {
+    font-size: 9px;
+  }
+}
