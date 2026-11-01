@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { MongoClient } from 'mongodb';
+import { MongoRepository } from '../src/server/db/mongo-repository.ts';
+import { BackboneService } from '../src/server/core/service.ts';
+import { ProgressionService } from '../src/server/progression/service.ts';
+import { createLocalApi } from '../src/server/core/http.ts';
+
+const uri=process.env.POKEPET_TEST_MONGODB_URI;
+test('daily care persists, deduplicates retries and racing commands, and reopens after London midnight',{skip:!uri},async t=>{
+  assert.match(uri!,/^mongodb:\/\/127\.0\.0\.1:\d+$/);
+  const client=new MongoClient(uri!,{serverSelectionTimeoutMS:1500});await client.connect();t.after(()=>client.close());
+  const db=client.db(`pokepet_local_daily_${Date.now()}_${randomUUID().slice(0,8)}`),repo=new MongoRepository(db);await repo.initialize();
+  let now=new Date('2026-06-01T12:00:00Z');
+  const backbone=new BackboneService(repo,()=>now),service=new ProgressionService(db,backbone,()=>now);
+  const a=await backbone.bootstrap(undefined,'Daily A');
+  const action={kind:'mission' as const,missionId:'daily-feed',confirmed:true};
+  const sameId=randomUUID();
+  const [first,retry]=await Promise.all([service.command(a.token!,sameId,action),service.command(a.token!,sameId,action)]);
+  assert.deepEqual(first.receipt,retry.receipt);assert.equal((await service.get(a.token!)).points,15);
+  const play={kind:'mission' as const,missionId:'daily-play',confirmed:true};
+  const raced=await Promise.allSettled([service.command(a.token!,randomUUID(),play),service.command(a.token!,randomUUID(),play)]);
+  assert.equal(raced.filter(x=>x.status==='fulfilled').length,1);assert.equal((await service.get(a.token!)).points,30);
+  const upgraded=await service.command(a.token!,randomUUID(),{kind:'upgrade',stat:'health'});
+  assert.equal(upgraded.snapshot.points,25);assert.equal(upgraded.snapshot.stats.health,31);
+  now=new Date('2026-06-01T23:00:00Z');
+  assert.deepEqual((await service.get(a.token!)).dailyMissions,{date:'2026-06-02',completedMissionIds:[]});
+  const result=await service.command(a.token!,randomUUID(),action);assert.equal(result.snapshot.points,40);
+  const api=createLocalApi(backbone);
+  const req=new Request('http://127.0.0.1:3018/api/progression',{headers:{cookie:`pokepet_session=${a.token}`}});
+  const response=await api(req);assert.equal(response.status,200);
+  assert.deepEqual((await response.json()).dailyMissions,{date:'2026-06-02',completedMissionIds:['daily-feed']});
+  console.log('Real daily progression test retained its uniquely named isolated local database');
+});

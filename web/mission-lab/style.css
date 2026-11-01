@@ -1,0 +1,18 @@
+:root { font-family: system-ui, sans-serif; color: #193b32; background: #eff8ec; }
+body { margin: 0; }
+main { max-width: 42rem; margin: auto; padding: 1.25rem; }
+h1 { font-size: clamp(2rem, 8vw, 3rem); margin: .2rem 0; }
+h2 { font-size: 1.2rem; }
+.eyebrow, .note { font-size: .85rem; color: #446557; }
+.eyebrow { font-weight: 700; text-transform: uppercase; }
+section { margin: 1.5rem 0; }
+.missions { display: flex; flex-wrap: wrap; gap: .5rem; }
+button { background: #225d47; color: white; border: 0; border-radius: .7rem; padding: .8rem 1rem; cursor: pointer; font: inherit; }
+button:focus-visible { outline: 3px solid #b57b00; outline-offset: 2px; }
+button:disabled { opacity: .55; cursor: default; }
+.mission { background: #d8eadd; color: #193b32; }
+.mission.selected { background: #225d47; color: white; }
+.panel { background: white; border-radius: 1rem; padding: 1rem; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+.stat { background: white; border-radius: .7rem; padding: .6rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.stat button { padding: .45rem .8rem; }

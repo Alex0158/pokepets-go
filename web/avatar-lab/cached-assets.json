@@ -1,0 +1,280 @@
+{
+  "owner": {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "owner-cached-live-synthetic",
+      "sheet": "assets/cached-owner-live.png",
+      "width": 1024,
+      "height": 1024,
+      "animations": {
+        "idle": {
+          "fps": 3,
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 0,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 256,
+              "y": 0,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 512,
+              "y": 0,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 768,
+              "y": 0,
+              "w": 256,
+              "h": 256
+            }
+          ]
+        },
+        "move": {
+          "fps": 8,
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 256,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 256,
+              "y": 256,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 512,
+              "y": 256,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 768,
+              "y": 256,
+              "w": 256,
+              "h": 256
+            }
+          ]
+        },
+        "attack": {
+          "fps": 8,
+          "loop": false,
+          "frames": [
+            {
+              "x": 0,
+              "y": 512,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 256,
+              "y": 512,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 512,
+              "y": 512,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 768,
+              "y": 512,
+              "w": 256,
+              "h": 256
+            }
+          ]
+        },
+        "hurt": {
+          "fps": 8,
+          "loop": false,
+          "frames": [
+            {
+              "x": 0,
+              "y": 768,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 256,
+              "y": 768,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 512,
+              "y": 768,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 768,
+              "y": 768,
+              "w": 256,
+              "h": 256
+            }
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "provider": "openai-cache",
+      "subject": "owner",
+      "inputConditioned": true,
+      "modelRequested": "gpt-image-2.5-flare-2026-09-08",
+      "modelReturned": null,
+      "label": "Cached output from recorded live API test using synthetic input; no new call"
+    }
+  },
+  "pet": {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "pet-cached-live-synthetic",
+      "sheet": "assets/cached-pet-photo-live.png",
+      "width": 1024,
+      "height": 1024,
+      "animations": {
+        "idle": {
+          "fps": 3,
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 0,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 256,
+              "y": 0,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 512,
+              "y": 0,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 768,
+              "y": 0,
+              "w": 256,
+              "h": 256
+            }
+          ]
+        },
+        "move": {
+          "fps": 8,
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 256,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 256,
+              "y": 256,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 512,
+              "y": 256,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 768,
+              "y": 256,
+              "w": 256,
+              "h": 256
+            }
+          ]
+        },
+        "attack": {
+          "fps": 8,
+          "loop": false,
+          "frames": [
+            {
+              "x": 0,
+              "y": 512,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 256,
+              "y": 512,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 512,
+              "y": 512,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 768,
+              "y": 512,
+              "w": 256,
+              "h": 256
+            }
+          ]
+        },
+        "hurt": {
+          "fps": 8,
+          "loop": false,
+          "frames": [
+            {
+              "x": 0,
+              "y": 768,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 256,
+              "y": 768,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 512,
+              "y": 768,
+              "w": 256,
+              "h": 256
+            },
+            {
+              "x": 768,
+              "y": 768,
+              "w": 256,
+              "h": 256
+            }
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "provider": "openai-cache",
+      "subject": "pet",
+      "inputConditioned": true,
+      "modelRequested": "gpt-image-2.5-flare-2026-09-08",
+      "modelReturned": null,
+      "label": "Cached output from recorded live API test using synthetic input; no new call"
+    }
+  }
+}
