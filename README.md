@@ -5,6 +5,19 @@ A playful web game for pets and their people.
 
 The current integrated Next.js game is in `web/`. A guest creates a profile, sees other registered players on a fictional map, completes owner-reported activities for points, upgrades their pet and chooses a Sneak attack or a face-to-face challenge. Auto mode selects a move through OpenAI Decisions when available, with a labelled fallback. Owner and pet image generation use separate assets; a preset / Skip path is available.
 
+### Two core journeys
+
+1. **Meet and battle:** Create separate owner and pet avatars, explore the fictional map, select another player, and choose a Sneak attack against an automatic opponent or a face-to-face challenge with another player. Auto mode can select legal actions through the Decisions API; the server applies the battle rules.
+2. **Care and grow:** Describe a pet interaction by voice or text, or use a manual activity; earn game points and spend them on pet attributes. Saved Attack, Defence and Health affect the next battle. Activities are self-reported and are not verified pet care.
+
+### OpenAI technology and inspiration
+
+- **Voice:** OpenAI transcription and AI scoring turn a recorded or typed activity into points. A separate Realtime voice prototype has been tested locally; live Realtime is not enabled on the hosted demo.
+- **Decisions API:** Auto mode asks `gpt-6-luna` to choose an available battle move, with a labelled fallback if Decisions is unavailable.
+- **Image 2.5:** Separate owner and pet images can be transformed into animated sprite assets. Synthetic image generation was verified in an isolated hosted preview; production personal-photo generation is not yet verified.
+- **Codex Pets concept:** Inspired our animated sprite-sheet approach for pet characters; the game uses its own assets and is not a Codex Pets package.
+- **Codex:** Used to build and test the modular game, including the shared MongoDB battle flow and AI-assisted prototypes.
+
 The current local build has been exercised with two browser sessions and an isolated MongoDB replica set. Live OpenAI voice, Decisions and synthetic-image tests have passed locally; the game does not verify real-world care. Atlas app service writes and transactions have also passed in a separate test database. The current [hosted demo](https://pokepets-go.vercel.app/) uses MongoDB Atlas. A labelled guest session and one manual task survived reload in production. Synthetic owner and pet image generation and AI-scored text activity passed separately in isolated hosted previews; production personal-photo generation, browser microphone and multiplayer remain to be verified. Avatar assets expire from access after five minutes; generation has a shared two-attempt limit. A shared daily provider-call cap bounds AI usage.
 
 ### Run the integrated game locally
