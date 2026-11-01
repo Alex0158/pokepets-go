@@ -165,12 +165,11 @@ window.AfterglowMap = (() => {
         ["#a5a28f", "#59686a", "#7a8984"],
         ["#b79c85", "#685b5c", "#937969"],
       ];
-      const windows = [];
+      // Preserve the seeded neighborhood's existing heights, colors, and trees.
+      // These random samples previously selected facade window lighting.
       for (let y = 12; y < h - 8; y += 16) {
-        for (let u = 8; u < w - 6; u += 13)
-          windows.push({ u, y, side: false, lit: random() > 0.32 });
-        for (let u = 8; u < d - 6; u += 13)
-          windows.push({ u, y, side: true, lit: random() > 0.4 });
+        for (let u = 8; u < w - 6; u += 13) random();
+        for (let u = 8; u < d - 6; u += 13) random();
       }
       objects.push({
         x: x + w / 2,
@@ -190,29 +189,6 @@ window.AfterglowMap = (() => {
         draw() {
           box(x - 3, z - 3, w + 6, d + 6, 4, ["#a4adb1", "#4f5965", "#6f7c85"]);
           box(x, z, w, d, h, palettes[tone], 4);
-          for (const win of windows) {
-            const color = win.lit ? "#f4d69c" : "#2d4259";
-            if (win.side)
-              polygon(
-                [
-                  [x + w + 0.1, win.y, z + win.u],
-                  [x + w + 0.1, win.y, z + win.u + 5],
-                  [x + w + 0.1, win.y + 7, z + win.u + 5],
-                  [x + w + 0.1, win.y + 7, z + win.u],
-                ],
-                color,
-              );
-            else
-              polygon(
-                [
-                  [x + win.u, win.y, z + d + 0.1],
-                  [x + win.u + 6, win.y, z + d + 0.1],
-                  [x + win.u + 6, win.y + 7, z + d + 0.1],
-                  [x + win.u, win.y + 7, z + d + 0.1],
-                ],
-                color,
-              );
-          }
           if (roof) {
             const ridge = h + 21;
             polygon(

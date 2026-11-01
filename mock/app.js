@@ -161,16 +161,7 @@ function building(x, y, width, depth, height, tone = 0) {
     c = [x + width - depth, y - height + (width + depth) * 0.48],
     d = [x - depth, y - height + depth * 0.48];
   const points = (list) => list.map((point) => point.join(",")).join(" ");
-  let windows = "";
-  for (let row = 0; row < Math.floor(height / 17); row++) {
-    for (let col = 0; col < Math.floor(width / 16); col++) {
-      const wx = x + 6 + col * 16;
-      const wy = y - height + 12 + row * 16 + col * 7.7;
-      if ((col + row + x) % 3)
-        windows += `<path d="m${wx} ${wy} 6 3v5l-6-3Z" fill="${(col + row) % 3 === 0 ? "#c2db8a" : "#7482a9"}" opacity=".6"/>`;
-    }
-  }
-  return `<g><polygon points="${points([d, c, [c[0], c[1] + height], [d[0], d[1] + height]])}" fill="${colors[1]}"/><polygon points="${points([a, b, [b[0], b[1] + height], [a[0], a[1] + height]])}" fill="${colors[2]}"/><polygon points="${points([a, b, c, d])}" fill="${colors[0]}" stroke="#67718a" stroke-width=".5"/>${windows}<path d="m${a[0]} ${a[1]} ${width} ${width * 0.48}" stroke="#8991b2" stroke-width="1" opacity=".4"/></g>`;
+  return `<g><polygon points="${points([d, c, [c[0], c[1] + height], [d[0], d[1] + height]])}" fill="${colors[1]}"/><polygon points="${points([a, b, [b[0], b[1] + height], [a[0], a[1] + height]])}" fill="${colors[2]}"/><polygon points="${points([a, b, c, d])}" fill="${colors[0]}" stroke="#67718a" stroke-width=".5"/><path d="m${a[0]} ${a[1]} ${width} ${width * 0.48}" stroke="#8991b2" stroke-width="1" opacity=".4"/></g>`;
 }
 function tree(x, y, size = 1, tone = 0) {
   const color = ["#526d64", "#5c6b83", "#496f65", "#77718f"][tone];
