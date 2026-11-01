@@ -36,3 +36,17 @@ test('hosted session sets Secure cookie even when framework URL is internal HTTP
   if(previousOrigin===undefined)delete process.env.POKEPET_HOSTED_ORIGIN;else process.env.POKEPET_HOSTED_ORIGIN=previousOrigin;
  }
 });
+
+test('hosted avatar remains disabled unless explicitly enabled, with origin and content guards intact',()=>{
+ const request=req('https://game.example/api/avatars/config','GET',{host:'game.example'});
+ rejects(()=>validateRequestBoundary(request,hosted),'hosted_feature_unavailable');
+ validateRequestBoundary(request,{...hosted,POKEPET_HOSTED_AVATAR_ENABLED:'1'});
+ rejects(()=>validateRequestBoundary(req('https://game.example/api/avatars/jobs','POST',{host:'game.example',origin:'https://evil.example','content-type':'application/json'}),{...hosted,POKEPET_HOSTED_AVATAR_ENABLED:'1'}),'origin_rejected');
+});
+
+test('hosted voice remains disabled unless explicitly enabled, with origin guards intact',()=>{
+ const request=req('https://game.example/api/voice-mission','GET',{host:'game.example'});
+ rejects(()=>validateRequestBoundary(request,hosted),'hosted_feature_unavailable');
+ validateRequestBoundary(request,{...hosted,POKEPET_HOSTED_VOICE_ENABLED:'1'});
+ rejects(()=>validateRequestBoundary(req('https://game.example/api/voice-mission','POST',{host:'game.example',origin:'https://evil.example','content-type':'application/json'}),{...hosted,POKEPET_HOSTED_VOICE_ENABLED:'1'}),'origin_rejected');
+});

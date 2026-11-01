@@ -1,6 +1,6 @@
 import { fail } from './battle.ts';
 
-type Config={POKEPET_RUNTIME_MODE?:string;POKEPET_HOSTED_ORIGIN?:string};
+type Config={POKEPET_RUNTIME_MODE?:string;POKEPET_HOSTED_ORIGIN?:string;POKEPET_HOSTED_AVATAR_ENABLED?:string;POKEPET_HOSTED_VOICE_ENABLED?:string};
 export function validateRequestBoundary(request:Request,config:Config) {
   const url=new URL(request.url), mode=config.POKEPET_RUNTIME_MODE??'local';
   if(mode==='local') {
@@ -21,7 +21,8 @@ export function validateRequestBoundary(request:Request,config:Config) {
   const host=request.headers.get('host');
   if(!host||host.toLowerCase()!==expected.host.toLowerCase())fail('host_rejected',403);
   if(url.protocol!=='https:'&&request.headers.get('x-forwarded-proto')!=='https')fail('https_required',403);
-  if(url.pathname==='/api/voice-mission'||url.pathname.startsWith('/api/voice-mission/')||url.pathname==='/api/avatars'||url.pathname.startsWith('/api/avatars/'))fail('hosted_feature_unavailable',503);
+  if((url.pathname==='/api/voice-mission'||url.pathname.startsWith('/api/voice-mission/'))&&config.POKEPET_HOSTED_VOICE_ENABLED!=='1')fail('hosted_feature_unavailable',503);
+  if((url.pathname==='/api/avatars'||url.pathname.startsWith('/api/avatars/'))&&config.POKEPET_HOSTED_AVATAR_ENABLED!=='1')fail('hosted_feature_unavailable',503);
   if(request.method!=='GET') {
     if(request.headers.get('origin')!==expected.origin)fail('origin_rejected',403);
     if(request.headers.get('content-type')?.split(';')[0].trim()!=='application/json')fail('json_required',415);
