@@ -9,7 +9,7 @@ import { createDecisionProvider } from '../auto/decisions.ts';
 export const SESSION_COOKIE='pokepet_session';
 const response=(value:unknown,status=200,headers:Record<string,string>={})=>Response.json(value,{status,headers:{'Cache-Control':'no-store',...headers}});
 export function localRequest(request:Request) {
-  validateRequestBoundary(request,{POKEPET_RUNTIME_MODE:process.env.POKEPET_RUNTIME_MODE,POKEPET_HOSTED_ORIGIN:process.env.POKEPET_HOSTED_ORIGIN});
+  validateRequestBoundary(request,{POKEPET_RUNTIME_MODE:process.env.POKEPET_RUNTIME_MODE,POKEPET_HOSTED_ORIGIN:process.env.POKEPET_HOSTED_ORIGIN,POKEPET_HOSTED_AVATAR_ENABLED:process.env.POKEPET_HOSTED_AVATAR_ENABLED,POKEPET_HOSTED_VOICE_ENABLED:process.env.POKEPET_HOSTED_VOICE_ENABLED});
 }
 function sessionToken(request:Request) {
   const tokens=(request.headers.get('cookie')??'').split(';').map(s=>s.trim()).filter(s=>s.startsWith(`${SESSION_COOKIE}=`));
