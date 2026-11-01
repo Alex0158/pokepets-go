@@ -1,4 +1,4 @@
-/* Local discovery fixtures. No real people, location tracking, or shared profiles. */
+/* Predefined neighbourhood profiles for the offline experience. */
 window.AfterglowCommunity = (() => {
   const owners = [
     {
@@ -162,11 +162,11 @@ window.AfterglowCommunity = (() => {
     }
     function list(returnTo) {
       show(`<header class="neighbors-heading"><span class="eyebrow">YOUR LOCAL PACK</span><h2 id="dialog-title">Meet the neighbourhood.</h2><p>Familiar streets. A few new friends.</p></header>
-        <div class="neighbors-location"><span>${icon("pin")} Haggerston, London <span class="neighbors-radius">· Within 1 km</span></span><span class="neighbors-demo">Sample neighbours</span></div>
+        <div class="neighbors-location"><span>${icon("pin")} Haggerston, London <span class="neighbors-radius">· Within 1 km</span></span></div>
         <label class="neighbors-search">${icon("compass")}<span class="sr-only">Search owners or pets</span><input id="neighbor-search" type="search" placeholder="Find an owner or a pet" value="${escapeHTML(query)}" autocomplete="off"/></label>
         <div class="neighbors-filters" aria-label="Filter by pet type">${filters.map(([id, label]) => `<button data-neighbor-filter="${id}" aria-pressed="${kind === id}">${label}</button>`).join("")}</div>
         <div class="neighbors-results-heading"><h3>Owners nearby</h3><span id="neighbor-count" role="status" aria-live="polite"></span></div><div id="neighbor-results" class="neighbors-grid"></div>
-        <p class="neighbors-footnote">Discover their pets, milestones, and adventures. Profiles and distances in this preview are fictional.</p>`);
+        <p class="neighbors-footnote">Discover their pets, milestones, and adventures.</p>`);
       content
         .querySelector("#neighbor-search")
         .addEventListener("input", (event) => {
@@ -244,7 +244,7 @@ window.AfterglowCommunity = (() => {
       }));
       show(`<button class="neighbor-back" id="neighbors-back">${icon("arrow")} Neighbours</button>
         <header class="neighbor-profile-heading">${avatar(owner)}<div><span class="eyebrow">NEIGHBOURHOOD EXPLORER · LVL ${level(totalXP)}</span><h2 id="dialog-title" tabindex="-1">${owner.name}</h2><p>${owner.area} · ~${owner.distance} m away</p></div></header>
-        <p class="neighbor-bio">${owner.bio}</p><div class="neighbor-profile-meta"><span>Joined ${owner.joined}</span><span class="neighbors-demo">Sample profile</span></div>
+        <p class="neighbor-bio">${owner.bio}</p><div class="neighbor-profile-meta"><span>Joined ${owner.joined}</span></div>
         <section class="neighbor-section" aria-labelledby="neighbor-pets-title"><div class="neighbor-section-title"><h3 id="neighbor-pets-title">The companions</h3><span>${owner.pets.length} ${owner.pets.length === 1 ? "pet" : "pets"}</span></div>
         <div class="neighbor-pet-selector" aria-label="Choose a pet">${owner.pets.map((pet, index) => `<button data-pet-index="${index}" aria-pressed="${index === 0}" aria-controls="neighbor-pet-detail">${portrait(pet)} ${pet.name}</button>`).join("")}</div><div id="neighbor-pet-detail" aria-live="polite"></div></section>
         <section class="neighbor-section" aria-labelledby="neighbor-journey-title"><div class="neighbor-section-title"><h3 id="neighbor-journey-title">The journey so far</h3><span>All companions · All time</span></div>
@@ -272,7 +272,7 @@ window.AfterglowCommunity = (() => {
               `<li><span class="neighbor-activity-icon">${icon({ walk: "compass", play: "bolt", bond: "heart" }[type])}</span><div><strong>${title}</strong><small>With ${pet} · ${date}</small></div><span>+${xp} XP</span></li>`,
           )
           .join("")}</ol></section>
-        <p class="neighbors-footnote">Fictional owner, pets, and activity. Game stats are for the preview.</p>`);
+`);
       content
         .querySelector("#neighbors-back")
         .addEventListener("click", () => list(owner.id));

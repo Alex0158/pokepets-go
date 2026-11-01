@@ -1,16 +1,16 @@
 import * as THREE from "three";
 
-// Presentation only: accepted fixture events animate models, never calculate HP.
+// Presentation only: accepted battle events animate models, never calculate HP.
 function mount(host, options = {}) {
   const portrait = options.mode === "profile";
   const night = options.theme === "afterglow";
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: portrait });
   } catch {
     host.innerHTML = portrait
-      ? '<div style="height:100%;display:grid;place-items:center;text-align:center;padding:24px"><p>3D preview is unavailable on this device.<br>Your pet’s profile and upgrades still work.</p></div>'
+      ? '<div style="height:100%;display:grid;place-items:center;text-align:center;padding:24px"><p>3D is unavailable on this device.<br>Your pet’s profile and upgrades still work.</p></div>'
       : '<div style="height:100%;display:grid;place-items:center;text-align:center;padding:24px"><div><strong>Battle arena</strong><p>3D is unavailable on this device.<br>The battle controls and HP still work.</p></div></div>';
     host.dataset.renderer = "fallback";
     return { play: () => Promise.resolve(), dispose() {} };
@@ -204,7 +204,13 @@ function mount(host, options = {}) {
       ear.position.set(sign * 0.48, 0.4, -0.04);
       head.add(ear);
       ear.rotation.z = -sign * 0.2;
-      mesh(ear, earGeometry, fur, [0, 0, 0], [1, kind === "cat" ? 0.9 : 1, 1]);
+      mesh(
+        ear,
+        earGeometry,
+        fur,
+        [0, 0, 0],
+        [1, kind === "rabbit" ? 1.65 : kind === "cat" ? 0.9 : 1, 1],
+      );
       mesh(ear, earGeometry, earPink, [0, 0.1, 0.17], [0.57, 0.65, 0.25]);
       ears.push(ear);
       const eye = new THREE.Group();
@@ -320,8 +326,8 @@ function mount(host, options = {}) {
   const actors = {
     player: pet(
       options.playerKind || "corgi",
-      night ? "#b8a2ee" : "#dfa65e",
-      night ? "#d7ff78" : "#6d9859",
+      options.playerColor || (night ? "#b8a2ee" : "#dfa65e"),
+      options.playerAccent || (night ? "#d7ff78" : "#6d9859"),
     ),
     ...(!portrait && {
       opponent: pet(
@@ -565,7 +571,7 @@ function mount(host, options = {}) {
         motion && !actor.fainted ? Math.sin(localTime * 3) * 0.1 : -0.15;
       expression(
         actor,
-        actor.fainted ? "faint" : actor.won ? "happy" : "idle",
+        actor.fainted ? "faint" : actor.won ? "happy" : actor.mood || "idle",
         1,
         blink,
         glance,
@@ -773,6 +779,76 @@ function mount(host, options = {}) {
     renderer.dispose();
     renderer.forceContextLoss();
   }
-  return { play, dispose };
+  function setAngle(degrees) {
+    if (portrait) actors.player.facing = 0.33 + (degrees * Math.PI) / 180;
+  }
+  function setMood(mood) {
+    if (portrait) actors.player.mood = mood;
+  }
+  // Capture real views of the same rig, with a transparent background.
+  function captureSprites() {
+    if (!portrait || disposed) return null;
+    const actor = actors.player;
+    const size = renderer.getSize(new THREE.Vector2());
+    const ratio = renderer.getPixelRatio();
+    const background = scene.background;
+    const fog = scene.fog;
+    const hidden = scene.children.filter(
+      (item) => item !== actor.root && !item.isLight && item.visible,
+    );
+    const rotation = actor.root.rotation.clone();
+    const headRotation = actor.head.rotation.clone();
+    const facing = actor.facing;
+    const sheet = document.createElement("canvas");
+    sheet.width = 2048;
+    sheet.height = 1024;
+    const ctx = sheet.getContext("2d");
+    let thumbnail;
+    try {
+      hidden.forEach((item) => {
+        item.visible = false;
+      });
+      scene.background = null;
+      scene.fog = null;
+      renderer.setClearColor(0x000000, 0);
+      renderer.setPixelRatio(1);
+      renderer.setSize(256, 256, false);
+      camera.aspect = 1;
+      camera.position.copy(cameraHome);
+      camera.lookAt(target);
+      camera.updateProjectionMatrix();
+      actor.head.rotation.set(0, 0, 0);
+      ["idle", "happy", "guard", "hurt"].forEach((mood, row) => {
+        actor.ears.forEach((ear, i) =>
+          ear.rotation.set(0, 0, (i ? -1 : 1) * 0.2),
+        );
+        expression(actor, mood);
+        for (let col = 0; col < 8; col++) {
+          actor.root.rotation.set(0, 0.33 + (col * Math.PI) / 4, 0);
+          renderer.render(scene, camera);
+          ctx.drawImage(renderer.domElement, col * 256, row * 256, 256, 256);
+          if (!row && !col)
+            thumbnail = renderer.domElement.toDataURL("image/png");
+        }
+      });
+      return { sheet: sheet.toDataURL("image/png"), thumbnail };
+    } finally {
+      hidden.forEach((item) => {
+        item.visible = true;
+      });
+      scene.background = background;
+      scene.fog = fog;
+      actor.root.rotation.copy(rotation);
+      actor.head.rotation.copy(headRotation);
+      actor.facing = facing;
+      renderer.setPixelRatio(ratio);
+      renderer.setSize(size.x, size.y, false);
+      camera.aspect = size.x / size.y;
+      camera.updateProjectionMatrix();
+      expression(actor, actor.mood || "idle");
+      renderer.render(scene, camera);
+    }
+  }
+  return { play, dispose, setAngle, setMood, captureSprites };
 }
 window.PokepetArena = { mount };

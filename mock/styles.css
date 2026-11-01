@@ -198,7 +198,7 @@ a {
   margin-left: 15px;
   color: var(--muted);
 }
-.demo-label {
+.location-label {
   margin-left: auto;
   font-size: 10px;
   color: var(--muted);
@@ -206,7 +206,7 @@ a {
   align-items: center;
   gap: 7px;
 }
-.demo-label > span {
+.location-label > span {
   width: 5px;
   height: 5px;
   border-radius: 50%;
@@ -356,7 +356,7 @@ h1 span {
   width: 100%;
   height: 100%;
   cursor: grab;
-  touch-action: pan-y;
+  touch-action: none;
 }
 .neighborhood-canvas.dragging {
   cursor: grabbing;
@@ -368,6 +368,24 @@ h1 span {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+.neighborhood-labels [hidden],
+.map-controls [hidden] {
+  display: none;
+}
+.neighborhood-pin[aria-pressed="true"],
+.neighborhood-pin:focus-visible {
+  z-index: 2;
+}
+.map-zoomed-out
+  .neighborhood-pin:not([aria-pressed="true"]):not(:hover):not(:focus-visible)
+  .neighborhood-pin-label,
+.map-zoomed-out .neighborhood-neighbor:not(:hover):not(:focus-visible) span {
+  display: none;
+}
+.map-zoomed-out .neighborhood-pin-icon {
+  width: 28px;
+  height: 28px;
 }
 .neighborhood-pin {
   position: absolute;
@@ -466,14 +484,59 @@ h1 span {
   justify-items: center;
   gap: 4px;
   transform: translate(-50%, -100%);
+  pointer-events: auto;
+  background: none;
+  border: 0;
+  padding: 2px;
+  min-width: 44px;
+  min-height: 44px;
 }
 .neighborhood-neighbor svg {
-  width: 28px;
-  height: 28px;
-  border: 1px solid #c6baff;
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--player-color, #c6baff);
   border-radius: 50%;
   background: #383f58;
   stroke: none;
+}
+.map-player-profile {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin: 22px 0;
+  padding: 20px;
+  border: 1px solid var(--player-color);
+  border-radius: 16px;
+  background: radial-gradient(ellipse at top left, #48545b, #202838 70%);
+}
+.map-player-profile .map-pet-portrait {
+  width: 130px;
+  height: 130px;
+  flex-shrink: 0;
+  stroke: none;
+}
+.map-player-profile strong {
+  font-size: 19px;
+  color: var(--player-color);
+}
+.map-player-profile span {
+  font-size: 12px;
+  color: #d8dce5;
+}
+.map-player-activity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 22px;
+}
+@media (max-width: 600px) {
+  .map-player-profile {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
 }
 .neighborhood-neighbor span {
   padding: 3px 5px;
@@ -482,6 +545,30 @@ h1 span {
   letter-spacing: 0.5px;
   color: #d7cef5;
   background: #20293fdd;
+  white-space: nowrap;
+}
+.neighborhood-neighbor:hover,
+.neighborhood-neighbor:focus-visible {
+  z-index: 3;
+}
+.map-controls button[aria-pressed="true"] {
+  color: var(--lime);
+  border-color: var(--lime);
+}
+.mission-navigation {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.mission-navigation button {
+  border: 1px solid #515d6b;
+  border-radius: 5px;
+  background: #263244;
+  color: var(--lime);
+  width: 26px;
+  height: 28px;
+  font-size: 20px;
 }
 .map-perspective-hint {
   position: absolute;
@@ -1690,7 +1777,7 @@ form input::file-selector-button {
   .topbar {
     gap: 14px;
   }
-  .demo-label {
+  .location-label {
     font-size: 8px;
   }
   .points-pill span {
@@ -1807,12 +1894,12 @@ form input::file-selector-button {
   .points-pill {
     padding: 8px 10px;
   }
-  .demo-label {
+  .location-label {
     font-size: 7px;
     max-width: 100px;
     line-height: 1.6;
   }
-  .demo-label > span {
+  .location-label > span {
     display: none;
   }
   main {

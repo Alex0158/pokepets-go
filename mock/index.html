@@ -6,11 +6,12 @@
     <meta name="theme-color" content="#11131c" />
     <meta
       name="description"
-      content="Afterglow — an interactive Pokepet Go nighttime adventure concept."
+      content="Afterglow — explore London with your pet, collect memories, and meet the neighbourhood."
     />
     <title>Pokepet Go — Afterglow</title>
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="community.css" />
+    <link rel="stylesheet" href="pet-studio.css" />
   </head>
   <body>
     <svg
@@ -209,8 +210,8 @@
           <button
             class="rail-button"
             data-view="battle"
-            aria-label="Battle preview"
-            title="Battle preview"
+            aria-label="Battle"
+            title="Battle"
           >
             <svg><use href="#i-swords" /></svg><span>Battle</span>
           </button>
@@ -230,7 +231,7 @@
           <a class="wordmark" href="index.html"
             >pokepet<span>go</span><i>AFTERGLOW</i></a
           >
-          <span class="demo-label"><span></span> UI concept · London map</span>
+          <span class="location-label"><span></span> Haggerston · London</span>
           <button
             class="points-pill"
             data-view="pet"
@@ -252,9 +253,7 @@
             <div class="weather">
               <svg><use href="#i-moon" /></svg>
               <div>
-                Haggerston, London<small
-                  >Laburnum Street · Evening concept</small
-                >
+                Haggerston, London<small>Laburnum Street · Evening</small>
               </div>
             </div>
           </div>
@@ -290,13 +289,22 @@
                 class="map-perspective-hint"
                 id="map-perspective-hint"
                 hidden
-                >3D VIEW <i></i> Drag to look around</span
+                >3D VIEW <i></i> Drag to explore</span
               >
               <div class="map-legend">
-                <span><i class="legend-dot lime"></i> Adventure</span
-                ><span><i class="legend-dot lilac"></i> Sample player</span>
+                <span><i class="legend-dot lime"></i> 9 adventures</span
+                ><span><i class="legend-dot lilac"></i> 8 sample players</span>
               </div>
               <div class="map-controls">
+                <button
+                  id="map-rotate"
+                  aria-label="Rotate map mode"
+                  aria-pressed="false"
+                  title="Toggle drag to rotate"
+                  hidden
+                >
+                  ↻
+                </button>
                 <button
                   id="recenter"
                   aria-label="Recenter map"
@@ -307,7 +315,7 @@
                 ><button id="zoom-out" aria-label="Zoom out">−</button>
               </div>
               <div class="map-caption">
-                55 Laburnum St, E2 8BD · Stylised map · Demo routes
+                55 Laburnum St, E2 8BD · Haggerston, London
               </div>
               <div class="selected-mission" id="selected-mission"></div>
             </section>
@@ -334,7 +342,7 @@
                 <div class="pet-title">
                   <div>
                     <h2 id="pet-name">Miso</h2>
-                    <span>Mooncat · Curious spirit</span>
+                    <span id="pet-species">Mooncat · Curious spirit</span>
                   </div>
                   <div class="level-badge">
                     LVL<strong id="level">07</strong>
@@ -358,8 +366,7 @@
                       />
                     </svg>
                   </div>
-                  <span id="owner-name">Alex</span
-                  ><small>Owner · preset avatar</small>
+                  <span id="owner-name">Alex</span><small>Pet owner</small>
                 </div>
               </section>
               <button class="battle-teaser" data-view="battle">
@@ -369,7 +376,7 @@
                 <span
                   ><small>FRIENDLY RIVALRIES</small
                   ><strong>Meet your match</strong
-                  ><em>Try a simulated battle</em></span
+                  ><em>Enter the arena</em></span
                 ><svg class="arrow"><use href="#i-arrow" /></svg>
               </button>
               <section class="community-teaser">
@@ -381,12 +388,12 @@
                 <p>Discover nearby owners and their companions.</p>
                 <div
                   class="neighbors-teaser-pets"
-                  aria-label="Four sample owners nearby"
+                  aria-label="Four owners nearby"
                 >
                   <span class="tone-lilac" aria-hidden="true">J</span>
                   <span class="tone-peach" aria-hidden="true">S</span>
                   <span class="tone-mint" aria-hidden="true">L</span>
-                  <small>4 owners nearby · Preview</small>
+                  <small>4 owners nearby</small>
                 </div>
                 <button class="text-button" data-view="community">
                   Discover neighbours <span>↗</span>
@@ -396,7 +403,7 @@
           </div>
           <footer>
             <span>Every ordinary day has a little magic in it.</span
-            ><span>AFTERGLOW · CONCEPT 02</span>
+            ><span>AFTERGLOW · LONDON</span>
           </footer>
         </main>
       </div>
@@ -411,6 +418,7 @@
     <script src="arena.js" defer></script>
     <script src="map.js" defer></script>
     <script src="community.js" defer></script>
+    <script src="pet-studio.js" defer></script>
     <script src="app.js" defer></script>
   </body>
 </html>

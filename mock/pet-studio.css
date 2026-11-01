@@ -1,0 +1,405 @@
+.pet-collection-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.pet-collection {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 0 20px;
+  margin-bottom: 12px;
+}
+.pet-collection button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: 110px;
+  padding: 6px 14px 6px 6px;
+  border: 1px solid #394158;
+  border-radius: 16px;
+  background: #1e283c;
+  color: #f1f0e8;
+  text-align: left;
+}
+.pet-collection img,
+.pet-collection svg {
+  width: 44px;
+  height: 48px;
+  object-fit: contain;
+}
+.pet-collection small {
+  display: block;
+  color: #a6b1c6;
+  font-size: 9px;
+  margin-top: 5px;
+  letter-spacing: 1px;
+}
+.pet-collection button[aria-pressed="true"] {
+  border-color: #d5f889;
+  background: #303e38;
+}
+.pet-studio-link {
+  width: 100%;
+  margin: 0 0 24px;
+}
+dialog.pet-studio-dialog {
+  width: min(900px, calc(100vw - 32px));
+  max-width: 900px;
+  padding: 40px;
+}
+.studio-heading {
+  max-width: 640px;
+  margin-bottom: 26px;
+}
+.studio-heading h2 {
+  margin-top: 12px;
+}
+.studio-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+.pet-upload {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #777594;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #292c46, #1a2839);
+  min-height: 300px;
+  padding: 24px;
+  cursor: pointer;
+  text-align: center;
+  overflow: hidden;
+}
+.pet-upload:focus-within,
+.pet-upload.dragging {
+  outline: 2px solid #d8fc8b;
+  outline-offset: 4px;
+  background: #303e38;
+}
+.pet-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 1;
+}
+#pet-upload-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+#pet-upload-preview > img {
+  max-width: 100%;
+  height: 180px;
+  border-radius: 15px;
+  object-fit: contain;
+}
+#pet-upload-preview > span:not(.upload-paw),
+.pet-upload small {
+  color: #b7bdd0;
+  font-size: 12px;
+}
+.pet-upload small {
+  margin-top: 16px;
+}
+.upload-paw {
+  display: grid;
+  place-items: center;
+  height: 76px;
+  width: 76px;
+  background: #b9a5f129;
+  border-radius: 24px;
+  color: #d4bdfa;
+  margin-bottom: 8px;
+}
+.upload-paw svg {
+  width: 34px;
+  height: 34px;
+}
+.upload-change {
+  color: #dcf7a1;
+  font-size: 12px;
+  margin-top: 18px;
+}
+.studio-fields select {
+  width: 100%;
+  padding: 14px;
+  color: #eeeefa;
+  border: 1px solid #4d5268;
+  border-radius: 12px;
+  background: #1c2538;
+  font: inherit;
+  margin-top: 8px;
+}
+.photo-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #d0bbf10b;
+  margin-top: 28px;
+}
+.photo-tip svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #d3b8f2;
+}
+.photo-tip p {
+  margin: 0;
+  font-size: 13px;
+  color: #ece5f3;
+}
+.photo-tip span {
+  display: block;
+  color: #a7b0c4;
+  font-size: 12px;
+  margin-top: 6px;
+}
+.studio-status {
+  font-size: 12px;
+  min-height: 18px;
+  color: #b9c6ba;
+}
+.pet-generating {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 240px;
+  height: 240px;
+  margin: 30px auto;
+}
+.pet-generating img {
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.pet-generating > svg {
+  position: absolute;
+  right: 20px;
+  bottom: 30px;
+  width: 42px;
+  height: 42px;
+  color: #dbff8a;
+}
+.generation-orbit {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #66734f;
+  border-top: 2px solid #dcff8b;
+  border-radius: 50%;
+  animation: studio-spin 2s linear infinite;
+}
+@keyframes studio-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.generation-steps {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  margin: 24px 0 40px;
+}
+.generation-steps progress {
+  width: min(320px, 100%);
+  height: 6px;
+  accent-color: #d9fa80;
+}
+.generation-steps span {
+  font-size: 12px;
+  color: #aeb8cc;
+}
+.studio-result-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 24px;
+}
+.studio-character {
+  position: relative;
+  border: 1px solid #3c465c;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #172237;
+  min-height: 370px;
+}
+.studio-stage {
+  height: 100%;
+  min-height: 370px;
+}
+.studio-live {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: #d5fac0;
+  pointer-events: none;
+}
+.studio-source {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+  background: #142031dc;
+  border: 1px solid #67748a66;
+  border-radius: 13px;
+  font-size: 10px;
+  color: #c6d0dc;
+}
+.studio-source img {
+  height: 42px;
+  width: 42px;
+  object-fit: cover;
+  border-radius: 9px;
+}
+.studio-moods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+.studio-moods .secondary-button {
+  min-width: 0;
+  padding: 12px 8px;
+}
+.studio-controls button[aria-pressed="true"] {
+  border-color: #d5fa8a;
+  background: #c5f58a18;
+  color: #e1ffad;
+}
+.studio-coat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #b7c0d2;
+  margin: 16px 0 24px;
+}
+.studio-coat input {
+  width: 42px;
+  height: 28px;
+  border: 1px solid #6e7890;
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+}
+.studio-angles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 12px 0 20px;
+}
+.studio-angles button {
+  border: 1px solid #3c465b;
+  color: #bac5d8;
+  background: #1b2639;
+  border-radius: 9px;
+  padding: 12px 3px;
+  font-size: 10px;
+}
+.studio-gestures {
+  display: flex;
+  gap: 8px;
+}
+.studio-gestures button {
+  flex: 1;
+  padding: 10px 6px;
+  font-size: 11px;
+}
+.studio-sprites {
+  border: 1px solid #3b4356;
+  border-radius: 16px;
+  padding: 18px;
+  margin-top: 24px;
+}
+.studio-sprites summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: #edf1dd;
+}
+.studio-sprites summary span {
+  float: right;
+  color: #a6b0c7;
+  font-size: 11px;
+}
+.studio-sprites p {
+  font-size: 12px;
+}
+.sprite-sheet-wrap {
+  background: #263143;
+  border-radius: 12px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+.sprite-sheet-wrap img {
+  display: block;
+  width: 100%;
+  min-width: 440px;
+}
+.studio-sprites a {
+  display: inline-flex;
+  text-decoration: none;
+  font-size: 12px;
+}
+.pet-studio-dialog .dialog-actions {
+  margin-top: 22px;
+}
+.pet-portrait img.pet-art {
+  object-fit: contain;
+}
+@media (max-width: 640px) {
+  dialog.pet-studio-dialog {
+    padding: 30px 20px 24px;
+  }
+  .studio-input-grid,
+  .studio-result-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .pet-upload {
+    min-height: 240px;
+    padding: 18px;
+  }
+  .studio-stage,
+  .studio-character {
+    height: 300px;
+    min-height: 300px;
+  }
+  .studio-sprites summary span {
+    display: block;
+    float: none;
+    margin: 8px 0 0 15px;
+  }
+  .pet-studio-dialog .dialog-actions {
+    flex-direction: column-reverse;
+  }
+  .pet-studio-dialog .dialog-actions button {
+    width: 100%;
+  }
+  .pet-collection-heading .secondary-button {
+    padding: 10px 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .generation-orbit {
+    animation: none;
+  }
+}
