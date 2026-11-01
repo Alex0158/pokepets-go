@@ -94,7 +94,6 @@ try {
   persistent = false;
 }
 let selectedId = "moonwalk";
-let filter = "all";
 let zoom = 1;
 let neighborhood = null;
 let photoURL = "";
@@ -270,21 +269,6 @@ function renderSelected() {
       completed ? showMemories() : showMission(mission.id),
     );
 }
-function renderQuests() {
-  document.querySelector("#quest-grid").innerHTML = missions
-    .filter((mission) => filter === "all" || mission.filter === filter)
-    .map(
-      (mission) =>
-        `<button class="quest-card" data-quest="${mission.id}"><div class="quest-art">${questArt(mission.icon)}</div><div><small>${state.completed.includes(mission.id) ? "COLLECTED · " : ""}${mission.kind}</small><h3>${mission.title}</h3><p>${mission.minutes} min <span>·</span> +${mission.xp} XP <span>·</span> ${mission.filter === "indoors" ? "Indoors" : "Outdoors"}</p></div>${icon("arrow", "quest-arrow")}</button>`,
-    )
-    .join("");
-  document.querySelectorAll("[data-quest]").forEach((button) =>
-    button.addEventListener("click", () => {
-      selectMission(button.dataset.quest);
-      showMission(button.dataset.quest);
-    }),
-  );
-}
 function refresh() {
   document.querySelector("#points").textContent = state.points;
   document.querySelector("#pet-name").textContent = state.pet;
@@ -296,7 +280,6 @@ function refresh() {
   const label = document.querySelector("#map-pet-name");
   if (label) label.textContent = state.pet.toUpperCase();
   renderSelected();
-  renderQuests();
 }
 function showMission(id, active = false) {
   const mission = missions.find((item) => item.id === id);
@@ -796,15 +779,6 @@ dialog.addEventListener("close", () => {
   dialog.classList.remove("battle-dialog", "community-dialog");
 });
 window.addEventListener("pagehide", disposePetPreview);
-document.querySelectorAll("[data-filter]").forEach((button) =>
-  button.addEventListener("click", () => {
-    filter = button.dataset.filter;
-    document
-      .querySelectorAll("[data-filter]")
-      .forEach((item) => item.classList.toggle("active", item === button));
-    renderQuests();
-  }),
-);
 document.querySelector("#map-mode").addEventListener("click", (event) => {
   const active = event.currentTarget.getAttribute("aria-pressed") !== "true";
   event.currentTarget.setAttribute("aria-pressed", String(active));

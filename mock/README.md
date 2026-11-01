@@ -4,14 +4,14 @@ A responsive, interactive nighttime exploration concept in midnight blue, lavend
 
 ## Try the experience
 
-- Select a glowing map marker, or choose an adventure below the map.
+- Select a glowing map marker to choose an adventure.
 - Start a mission, confirm or skip it, then revisit its memory. Completion awards XP once per mission.
 - Open **My pet** for a close-up animated 3D mooncat: blinking, ear flicks, curious glances, paw lifts, and tail wags. **Say hello** makes it wave, **Play** triggers happy hops, and **Give love** brings a happy expression and glowing particles. These interactions do not spend XP. You can still spend 40 XP on a fictional stat upgrade below the preview.
 - Open **Community** to discover nearby sample owners. Search by owner, pet, or neighbourhood and filter by pet type. Open a profile to switch between companions, inspect Attack/Defense/Speed/Health and XP progress, and see completed missions, distance explored, streak, battle records, mission categories, and recent activity. Back returns to your previous search and filter. All neighbours, distances, and statistics are fictional local fixtures; no geolocation or live owner data is used.
 - Open **Memories** to see completed adventures, including after reload.
 - Open **Battle** for a cinematic, Pokémon-inspired encounter: opposing name/type/level/HP panels, a 3D arena, narrated turns, and a four-move console. Choose Pounce, Star spark (3 uses), Guard, or Moon mend (1 use). Inputs lock while player and rival animations resolve in sequence. Nova alternates tackle and guard deterministically. Guard halves the next incoming attack for either side and persists until that attack lands; a match ends in victory, defeat, or a draw after 20 individual moves (both players count). Replay and leaving the arena preserve adventure progress.
 - Open the owner avatar or the companion card’s arrow to name the owner and pet separately. An owner photo can be previewed locally; it never uploads or generates an avatar.
-- Toggle routes, zoom/recenter the map, or filter missions by indoor/outdoor activity.
+- Toggle routes or zoom/recenter the map.
 - Drag the 3D neighborhood horizontally (or focus it and use the left/right arrow keys) to look around. **Pause** freezes traffic and water; **Recenter** restores the original camera. Animation also stops offscreen, in a hidden tab, or when reduced motion is enabled.
 
 ## London map reference
